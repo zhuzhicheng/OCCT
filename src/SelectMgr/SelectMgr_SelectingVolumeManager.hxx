@@ -81,6 +81,11 @@ public:
                                                                               const gp_GTrsf& theTrsf,
                                                                               const Handle(SelectMgr_FrustumBuilder)& theBuilder) const;
 
+  //! Returns a copy of the selecting volume manager and its active frustum re-constructed using the passed builder.
+  //! Builder is an argument that represents corresponding settings for re-constructing transformed
+  //! frustum from scratch.
+  Standard_EXPORT virtual SelectMgr_SelectingVolumeManager CopyWithBuilder (const Handle(SelectMgr_FrustumBuilder)& theBuilder) const;
+
 public:
 
   //! Returns current camera definition.
@@ -89,7 +94,7 @@ public:
   //! Updates camera projection and orientation matrices in all selecting volumes
   //! Note: this method should be called after selection volume building
   //! else exception will be thrown
-  Standard_EXPORT void SetCamera (const Handle(Graphic3d_Camera) theCamera);
+  Standard_EXPORT void SetCamera (const Handle(Graphic3d_Camera)& theCamera);
 
   //! Updates viewport in all selecting volumes
   //! Note: this method should be called after selection volume building

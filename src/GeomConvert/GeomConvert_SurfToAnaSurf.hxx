@@ -30,9 +30,9 @@ class Geom_Surface;
 class Geom_SurfaceOfRevolution;
 class Geom_Circle;
 
-//! Converts a surface to the analitical form with given
+//! Converts a surface to the analytical form with given
 //! precision. Conversion is done only the surface is bspline
-//! of bezier and this can be approximed by some analytical
+//! of bezier and this can be approximated by some analytical
 //! surface with that precision.
 class GeomConvert_SurfToAnaSurf 
 {
@@ -115,7 +115,7 @@ private:
 
   static Standard_Real ComputeGap(const Handle(Geom_Surface)& theSurf,
     const Standard_Real theU1, const Standard_Real theU2, const Standard_Real theV1, const Standard_Real theV2,
-    const Handle(Geom_Surface) theNewSurf, const Standard_Real theTol = RealLast());
+    const Handle(Geom_Surface)& theNewSurf, const Standard_Real theTol = RealLast());
 
 
 

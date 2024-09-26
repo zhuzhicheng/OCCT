@@ -23,6 +23,7 @@
 
 #include <Standard_Real.hxx>
 #include <IFSelect_ReturnStatus.hxx>
+#include <StepData_ConfParameters.hxx>
 #include <STEPControl_StepModelType.hxx>
 #include <Standard_Integer.hxx>
 #include <Message_ProgressRange.hxx>
@@ -88,10 +89,21 @@ public:
                     const STEPControl_StepModelType mode,
                     const Standard_Boolean compgraph = Standard_True,
                     const Message_ProgressRange& theProgress = Message_ProgressRange());
-  
+
+  //! Translates shape sh to a STEP entity
+  Standard_EXPORT IFSelect_ReturnStatus Transfer
+                   (const TopoDS_Shape& sh,
+                    const STEPControl_StepModelType mode,
+                    const StepData_ConfParameters& theParams,
+                    const Standard_Boolean compgraph = Standard_True,
+                    const Message_ProgressRange& theProgress = Message_ProgressRange());
+
   //! Writes a STEP model in the file identified by filename.
-  Standard_EXPORT IFSelect_ReturnStatus Write (const Standard_CString filename);
-  
+  Standard_EXPORT IFSelect_ReturnStatus Write (const Standard_CString theFileName);
+
+  //! Writes a STEP model in the std::ostream.
+  Standard_EXPORT IFSelect_ReturnStatus WriteStream (std::ostream& theOStream);
+
   //! Displays the statistics for the
   //! last translation. what defines the kind of statistics that are displayed:
   //! - 0 gives general statistics   (number of translated roots,

@@ -416,7 +416,7 @@ int AdvApp2Var_SysBase::macrchk_()
 
 /*     FONCTION : */
 /*     ---------- */
-/*        TABLE OF MANAGEMENT OF DYNAMIC MEMOTY ALLOCATIONS */
+/*        TABLE OF MANAGEMENT OF DYNAMIC MEMORY ALLOCATIONS */
 
 /*     KEYWORDS : */
 /*     ----------- */
@@ -911,10 +911,9 @@ int macrmsg_(const char *,//crout,
     /* Parameter adjustments */
   ct -= ct_len;
   (void )ct; // unused
+  (void )xt; // unused
+  (void )it; // unused
 
-  --xt;
-  --it;
-  
   /* Function Body */
   mamdlng_(cln, 3L);
   
@@ -1789,7 +1788,7 @@ int maoverf_(integer *nbentr,
     /* Loop. The upper limit is the integer value of the logarithm of base 2
      */
     /* of NBENTR/NLONGR. */
-    i__1 = (integer) (log((real) (*nbentr) / (float)63.) / log((float)2.))
+    i__1 = (integer) (std::log((real) (*nbentr) / (float)63.) / std::log((float)2.))
       ;
     for (ibid = 1; ibid <= i__1; ++ibid) {
       
@@ -2201,8 +2200,8 @@ int AdvApp2Var_SysBase::mcrdelt_(integer *iunit,
 /*     ---------- */
 /*       TABLE OF MANAGEMENT OF DYNAMIC ALLOCATIONS IN MEMORY */
 
-/*     KEYWORS : */
-/*     ----------- */
+/*     KEYWORDS : */
+/*     ---------- */
 /*       SYSTEM, MEMORY, ALLOCATION */
 
 /*     DEMSCRIPTION/NOTES/LIMITATIONS : */
@@ -2485,7 +2484,7 @@ int mcrfree_(integer *,//ibyte,
 /*                                                                        */
 /*                   = 0  ==> OK                                          */
 /*                   = 1  ==> Allocation impossible                       */
-/*                   = -1 ==> Ofset > 2**31 - 1                           */
+/*                   = -1 ==> Offset > 2**31 - 1                          */
 /*                                                                        */
 
 /*                                                                        */
@@ -2868,7 +2867,7 @@ int AdvApp2Var_SysBase::mcrrqst_(integer *iunit,
 /*     . add size of the user zone */
 /*     . add 8 for alinement of start address of */
 /*       allocation on multiple of 8 so that to be able to  */
-/*       set flags with Double Precision without other pb than alignement */
+/*       set flags with Double Precision without other pb than alignment */
 /*     . add 16 octets for two flags */
 
     ibyte = izu + 24;

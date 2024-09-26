@@ -669,7 +669,7 @@ Standard_Boolean TopOpeBRepBuild_Builder::IsShapeOf(const TopoDS_Shape& s,const 
 Standard_Boolean TopOpeBRepBuild_Builder::Contains(const TopoDS_Shape& S,const TopTools_ListOfShape& L) 
 {
   for (TopTools_ListIteratorOfListOfShape it(L); it.More(); it.Next() ) {
-    TopoDS_Shape& SL = it.Value();
+    const TopoDS_Shape& SL = it.Value();
     Standard_Boolean issame = SL.IsSame(S);
     if ( issame ) return Standard_True;
   }
@@ -1587,7 +1587,7 @@ void TopOpeBRepBuild_Builder::FillShape(const TopoDS_Shape& S1,
       TopOpeBRepTool_ShapeExplorer ex11(aSubShape,t11);
       SplitShapes(ex11,ToBuild1,ToBuild2,aSet,RevOri);
     } 
-  } // exploration ot SubShapes of type <t1> of shape <S1>
+  } // exploration of SubShapes of type <t1> of shape <S1>
 
 } // FillShape
 

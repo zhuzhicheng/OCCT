@@ -198,7 +198,8 @@ void  ChFi3d_Builder::Compute()
   ChFi3d_InitChron(cl_total);
   ChFi3d_InitChron(cl_extent);
 #endif 
-  
+  UpdateTolesp();
+
   if (myListStripe.IsEmpty())
     throw Standard_Failure("There are no suitable edges for chamfer or fillet");
   
@@ -235,7 +236,7 @@ void  ChFi3d_Builder::Compute()
     itel.Value()->Spine()->SetErrorStatus(ChFiDS_Ok);
     try {
       OCC_CATCH_SIGNALS
-      PerformSetOfSurf(itel.Value());
+      PerformSetOfSurf(itel.ChangeValue());
     }
     catch(Standard_Failure const& anException) {
 #ifdef OCCT_DEBUG
@@ -335,7 +336,7 @@ void  ChFi3d_Builder::Compute()
       }
       // 05/02/02 akm ^^^
       Standard_Integer solidindex = st->SolidIndex();
-      ChFi3d_FilDS(solidindex,st,DStr,myRegul,tolesp,tol2d);
+      ChFi3d_FilDS(solidindex,st,DStr,myRegul,tolapp3d,tol2d);
       if (!done) break;
     }
     
@@ -411,7 +412,7 @@ void  ChFi3d_Builder::Compute()
       }
       if (!hasresult) {
       B1.MakeCompound(TopoDS::Compound(myShapeResult));
-      for(It.Reset(); It.More(); It.Next()){
+      for(It = TColStd_MapIteratorOfMapOfInteger(MapIndSo); It.More(); It.Next()){
 	Standard_Integer indsol = It.Key();
 	const TopoDS_Shape& curshape = DStr.Shape(indsol);
 	TopTools_ListIteratorOfListOfShape 
@@ -425,7 +426,6 @@ void  ChFi3d_Builder::Compute()
 	    if (letype == TopAbs_SHELL){
 	      TopExp_Explorer expsh2(its.Value(),TopAbs_SHELL);
 	      const TopoDS_Shape& cursh = expsh2.Current();
-	      TopoDS_Shape tt = cursh;
 	      B1.Add(myShapeResult,cursh);
 	      its.Next();
 	    }
@@ -440,7 +440,7 @@ void  ChFi3d_Builder::Compute()
       else {
        done=Standard_False;
        B1.MakeCompound(TopoDS::Compound(badShape));
-      for(It.Reset(); It.More(); It.Next()){
+      for(It = TColStd_MapIteratorOfMapOfInteger(MapIndSo); It.More(); It.Next()){
 	Standard_Integer indsol = It.Key();
 	const TopoDS_Shape& curshape = DStr.Shape(indsol);
 	TopTools_ListIteratorOfListOfShape 

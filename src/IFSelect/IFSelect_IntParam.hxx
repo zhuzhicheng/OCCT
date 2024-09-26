@@ -21,6 +21,7 @@
 
 #include <Standard_Integer.hxx>
 #include <TCollection_AsciiString.hxx>
+#include <NCollection_DefineAlloc.hxx>
 #include <Standard_Transient.hxx>
 
 class IFSelect_IntParam;
@@ -39,7 +40,7 @@ DEFINE_STANDARD_HANDLE(IFSelect_IntParam, Standard_Transient)
 //! to get its Handle.
 //! For an Integer, an IntParam can designate (by its name) a
 //! Static : each time its value is required or set, the Static
-//! is aknowledged
+//! is acknowledged
 class IFSelect_IntParam : public Standard_Transient
 {
 

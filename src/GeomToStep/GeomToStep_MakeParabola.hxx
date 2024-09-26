@@ -37,9 +37,11 @@ public:
   DEFINE_STANDARD_ALLOC
 
   
-  Standard_EXPORT GeomToStep_MakeParabola(const Handle(Geom2d_Parabola)& C);
+  Standard_EXPORT GeomToStep_MakeParabola(const Handle(Geom2d_Parabola)& C,
+                                          const StepData_Factors& theLocalFactors = StepData_Factors());
   
-  Standard_EXPORT GeomToStep_MakeParabola(const Handle(Geom_Parabola)& C);
+  Standard_EXPORT GeomToStep_MakeParabola(const Handle(Geom_Parabola)& C,
+                                          const StepData_Factors& theLocalFactors = StepData_Factors());
   
   Standard_EXPORT const Handle(StepGeom_Parabola)& Value() const;
 

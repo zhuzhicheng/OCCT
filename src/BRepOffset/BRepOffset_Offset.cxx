@@ -181,10 +181,10 @@ static void UpdateEdge (const TopoDS_Edge& E,
 //purpose  : Particular case of Curve On Surface. 
 //=======================================================================
 
-static void ComputeCurve3d(TopoDS_Edge           Edge,
+static void ComputeCurve3d(const TopoDS_Edge&           Edge,
 			   const Handle(Geom2d_Curve)& Curve,
 			   const Handle(Geom_Surface)& Surf,
-			   const TopLoc_Location Loc,
+			   const TopLoc_Location& Loc,
 			   Standard_Real         Tol)
 {
   // try to find the particular case
@@ -1252,7 +1252,7 @@ void BRepOffset_Offset::Init(const TopoDS_Edge&     Path,
   if ( IsClosed)
     Edge4 = Edge3;
 
-  Standard_Real TolApp = Precision::Approximation();
+  constexpr Standard_Real TolApp = Precision::Approximation();
 
   Handle(Geom2d_Line) L1,L2;
   if ( IsClosed) {

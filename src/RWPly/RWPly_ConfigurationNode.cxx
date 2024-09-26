@@ -14,12 +14,23 @@
 #include <RWPly_ConfigurationNode.hxx>
 
 #include <DE_ConfigurationContext.hxx>
+#include <DE_PluginHolder.hxx>
 #include <NCollection_Buffer.hxx>
 #include <RWPly_Provider.hxx>
 
 IMPLEMENT_STANDARD_RTTIEXT(RWPly_ConfigurationNode, DE_ConfigurationNode)
 
-static const TCollection_AsciiString THE_CONFIGURATION_SCOPE = "provider";
+namespace
+{
+  static const TCollection_AsciiString& THE_CONFIGURATION_SCOPE()
+  {
+    static const TCollection_AsciiString aScope = "provider";
+    return aScope;
+  }
+
+  // Wrapper to auto-load DE component
+  DE_PluginHolder<RWPly_ConfigurationNode> THE_OCCT_PLY_COMPONENT_PLUGIN;
+}
 
 //=======================================================================
 // function : RWPly_ConfigurationNode
@@ -27,9 +38,7 @@ static const TCollection_AsciiString THE_CONFIGURATION_SCOPE = "provider";
 //=======================================================================
 RWPly_ConfigurationNode::RWPly_ConfigurationNode() :
   DE_ConfigurationNode()
-{
-  UpdateLoad();
-}
+{}
 
 //=======================================================================
 // function : RWPly_ConfigurationNode
@@ -39,7 +48,6 @@ RWPly_ConfigurationNode::RWPly_ConfigurationNode(const Handle(RWPly_Configuratio
   :DE_ConfigurationNode(theNode)
 {
   InternalParameters = theNode->InternalParameters;
-  UpdateLoad();
 }
 
 //=======================================================================
@@ -48,7 +56,7 @@ RWPly_ConfigurationNode::RWPly_ConfigurationNode(const Handle(RWPly_Configuratio
 //=======================================================================
 bool RWPly_ConfigurationNode::Load(const Handle(DE_ConfigurationContext)& theResource)
 {
-  TCollection_AsciiString aScope = THE_CONFIGURATION_SCOPE + "." + GetFormat() + "." + GetVendor();
+  TCollection_AsciiString aScope = THE_CONFIGURATION_SCOPE() + "." + GetFormat() + "." + GetVendor();
   InternalParameters.FileLengthUnit = 
     theResource->RealVal("file.length.unit", InternalParameters.FileLengthUnit, aScope);
   InternalParameters.SystemCS = 
@@ -82,7 +90,7 @@ TCollection_AsciiString RWPly_ConfigurationNode::Save() const
   TCollection_AsciiString aResult;
   aResult += "!*****************************************************************************\n";
   aResult = aResult + "!Configuration Node " + " Vendor: " + GetVendor() + " Format: " + GetFormat() + "\n";
-  TCollection_AsciiString aScope = THE_CONFIGURATION_SCOPE + "." + GetFormat() + "." + GetVendor() + ".";
+  TCollection_AsciiString aScope = THE_CONFIGURATION_SCOPE() + "." + GetFormat() + "." + GetVendor() + ".";
 
   aResult += "!\n";
   aResult += "!Common parameters:\n";

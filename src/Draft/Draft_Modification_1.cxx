@@ -1066,7 +1066,7 @@ void Draft_Modification::Perform ()
               {
                 for (i = 1; i <= i2s.NbLines(); i++)
                 {
-                  Handle( Geom_Curve ) aCurve = i2s.Line(i);
+                  const Handle( Geom_Curve )& aCurve = i2s.Line(i);
                   gp_Pnt Pnt = aCurve->Value( aCurve->FirstParameter() );
                   GeomAPI_ProjectPointOnSurf projector( Pnt, S1, Precision::Confusion() );
                   Standard_Real U, V;
@@ -1587,7 +1587,7 @@ void Draft_Modification::Perform ()
       {
         // pf >= pl
         Standard_Real FirstPar = theCurve->FirstParameter(), LastPar = theCurve->LastParameter();
-        Standard_Real pconf = Precision::PConfusion();
+        constexpr Standard_Real pconf = Precision::PConfusion();
         if (Abs( pf - LastPar ) <= pconf)
           pf = FirstPar;
         else if (Abs( pl - FirstPar ) <= pconf)
@@ -2074,7 +2074,7 @@ static Standard_Real SmartParameter(Draft_EdgeInfo& Einf,
   const Handle(Geom_Surface)& S2)
 {
   Handle( Geom2d_Curve ) NewC2d;
-  Standard_Real Tol = Precision::Confusion();
+  constexpr Standard_Real Tol = Precision::Confusion();
   Standard_Real Etol = EdgeTol;
 
   Handle( Geom2d_Curve ) pcu1 = Einf.FirstPC();

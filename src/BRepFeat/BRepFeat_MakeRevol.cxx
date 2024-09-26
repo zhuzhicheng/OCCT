@@ -353,7 +353,7 @@ void BRepFeat_MakeRevol::Perform(const TopoDS_Shape& Until)
     myGShape = VraiRevol;
     GeneratedShapeValid();
 
-    TopoDS_Shape Base = theRevol.FirstShape();
+    const TopoDS_Shape& Base = theRevol.FirstShape();
     exp.Init(Base, TopAbs_FACE);
     TopoDS_Face theBase = TopoDS::Face(exp.Current());
     exp.Next();
@@ -633,7 +633,7 @@ void BRepFeat_MakeRevol::PerformUntilAngle(const TopoDS_Shape& Until,
     myGShape = VraiRevol;
     GeneratedShapeValid();
 
-    TopoDS_Shape Base = theRevol.FirstShape();
+    const TopoDS_Shape& Base = theRevol.FirstShape();
     exp.Init(Base, TopAbs_FACE);
     TopoDS_Face theBase = TopoDS::Face(exp.Current());
     exp.Next();
@@ -732,7 +732,7 @@ static void VerifGluedFaces(const TopoDS_Face& theSkface,
   TopTools_DataMapOfShapeShape& theMap)
 {
   Standard_Boolean GluedFaces = Standard_True;
-  TopoDS_Shape VraiRevol = theRevol.Shape();
+  const TopoDS_Shape& VraiRevol = theRevol.Shape();
 
   TColGeom_SequenceOfCurve scur;
   theRevol.Curves(theCurves);
@@ -834,8 +834,8 @@ Standard_Boolean ToFuse(const TopoDS_Face& F1,
   Handle(Geom_Surface) S1,S2;
   TopLoc_Location loc1, loc2;
   Handle(Standard_Type) typS1,typS2;
-  const Standard_Real tollin = Precision::Confusion();
-  const Standard_Real tolang = Precision::Angular();
+  constexpr Standard_Real tollin = Precision::Confusion();
+  constexpr Standard_Real tolang = Precision::Angular();
 
   S1 = BRep_Tool::Surface(F1,loc1);
   S2 = BRep_Tool::Surface(F2,loc2);

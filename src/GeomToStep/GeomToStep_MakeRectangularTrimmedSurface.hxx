@@ -22,6 +22,7 @@
 #include <Standard_Handle.hxx>
 
 #include <GeomToStep_Root.hxx>
+
 class StepGeom_RectangularTrimmedSurface;
 class Geom_RectangularTrimmedSurface;
 
@@ -38,7 +39,8 @@ public:
   DEFINE_STANDARD_ALLOC
 
   
-  Standard_EXPORT GeomToStep_MakeRectangularTrimmedSurface(const Handle(Geom_RectangularTrimmedSurface)& RTSurf);
+  Standard_EXPORT GeomToStep_MakeRectangularTrimmedSurface(const Handle(Geom_RectangularTrimmedSurface)& RTSurf,
+                                                           const StepData_Factors& theLocalFactors = StepData_Factors());
   
   Standard_EXPORT const Handle(StepGeom_RectangularTrimmedSurface)& Value() const;
 

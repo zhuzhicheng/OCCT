@@ -135,7 +135,7 @@ Standard_Boolean FUN_computeLIFfaces2d(const TopOpeBRepBuild_Builder& BU,
 				       const TopoDS_Edge& E, 
 				       TopOpeBRepDS_PDataStructure& pDS2d)
 // purpose : compute new face/face interferences F FTRA,
-//  {I = (T(F),ES,FTRA)} / Fsdm F and ES interfers with E which has splits ON
+//  {I = (T(F),ES,FTRA)} / Fsdm F and ES interferes with E which has splits ON
 //  E is edge of F
 { 
   const TopOpeBRepDS_DataStructure& BDS = BU.DataStructure()->DS(); 
@@ -474,7 +474,7 @@ static Standard_Boolean FUN_validF1edge(const TopoDS_Shape& F)
 
   // les faces construites (LOFS) prennent l'orientation originale de FF  
   TopAbs_Orientation odsFF = myDataStructure->Shape(iFF).Orientation();
-  for(TopTools_ListIteratorOfListOfShape itt(LOFS);itt.More();itt.Next()) itt.Value().Orientation(odsFF);
+  for(TopTools_ListIteratorOfListOfShape itt(LOFS);itt.More();itt.Next()) itt.ChangeValue().Orientation(odsFF);
 
   TopTools_ListIteratorOfListOfShape it1;
   for (it1.Initialize(LF1); it1.More(); it1.Next()) {
@@ -637,7 +637,7 @@ static Standard_Boolean FUN_validF1edge(const TopoDS_Shape& F)
   if(tSPS) debfille(iE);
 #endif
   
-  TopOpeBRepBuild_GTopo GME = G1;
+  const TopOpeBRepBuild_GTopo& GME = G1;
   GMergeEdgeWES(EOR,GME,WES);
   
   TopOpeBRepBuild_GTopo GSE = G1;

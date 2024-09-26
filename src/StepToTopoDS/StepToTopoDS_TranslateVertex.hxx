@@ -39,9 +39,15 @@ public:
   
   Standard_EXPORT StepToTopoDS_TranslateVertex();
   
-  Standard_EXPORT StepToTopoDS_TranslateVertex(const Handle(StepShape_Vertex)& V, StepToTopoDS_Tool& T, StepToTopoDS_NMTool& NMTool);
+  Standard_EXPORT StepToTopoDS_TranslateVertex(const Handle(StepShape_Vertex)& V,
+                                               StepToTopoDS_Tool& T,
+                                               StepToTopoDS_NMTool& NMTool,
+                                               const StepData_Factors& theLocalFactors = StepData_Factors());
   
-  Standard_EXPORT void Init (const Handle(StepShape_Vertex)& V, StepToTopoDS_Tool& T, StepToTopoDS_NMTool& NMTool);
+  Standard_EXPORT void Init (const Handle(StepShape_Vertex)& V,
+                             StepToTopoDS_Tool& T,
+                             StepToTopoDS_NMTool& NMTool,
+                             const StepData_Factors& theLocalFactors = StepData_Factors());
   
   Standard_EXPORT const TopoDS_Shape& Value() const;
   

@@ -269,7 +269,7 @@ public:
 
   //! Picks the sensitive entity according to the input axis.
   //! This is geometric intersection 3D objects by axis
-  //! (camera parameters are ignored and objects with transform persistance are skipped).
+  //! (camera parameters are ignored and objects with transform persistence are skipped).
   Standard_EXPORT void Pick (const gp_Ax1& theAxis,
                              const Handle(V3d_View)& theView);
 
@@ -328,7 +328,7 @@ protected:
   //! @param theObject [in] the selectable object for traversal.
   //! @param theMgr [in] the (un)transformed copy of the selecting volume manager representing active selection frustum.
   //! @param theCamera, theProjectionMat, theWorldViewMat [in] the source camera and matrices for theMgr given.
-  //! @param theViewportWidth, theViewportHeight [in] viewport (window) dimensions for evaluating 
+  //! @param theWinSize [in] viewport (window) dimensions for evaluating 
   //!        object's transformation persistence.
   Standard_EXPORT void traverseObject (const Handle(SelectMgr_SelectableObject)& theObject,
                                        const SelectMgr_SelectingVolumeManager& theMgr,

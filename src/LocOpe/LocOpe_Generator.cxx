@@ -137,7 +137,6 @@ void LocOpe_Generator::Perform(const Handle(LocOpe_GeneratedShape)& G)
   TopTools_DataMapOfShapeListOfShape theFFMap;
   TopTools_MapOfShape toRemove;
   TopTools_MapIteratorOfMapOfShape itm;
-  TopTools_DataMapIteratorOfDataMapOfShapeListOfShape itf;
 
   // recherche des fusions de faces
   for (itm.Initialize(GEdg); itm.More(); itm.Next()) {
@@ -158,7 +157,7 @@ void LocOpe_Generator::Perform(const Handle(LocOpe_GeneratedShape)& G)
       if (ToFuse(fac,facbis)) {
 	// On recherche si une face a deja fusionne avec facbis
 	Standard_Boolean facbisfound = Standard_False;
-	for (itf.Initialize(theFFMap); itf.More(); itf.Next()) {
+	for (TopTools_DataMapIteratorOfDataMapOfShapeListOfShape itf(theFFMap); itf.More(); itf.Next()) {
 	  if (itf.Key().IsSame(fac)) {
 	    continue;
 	  }
@@ -204,8 +203,8 @@ void LocOpe_Generator::Perform(const Handle(LocOpe_GeneratedShape)& G)
   // a fusionner avec une meme face de base
 
 //  TopTools_DataMapIteratorOfDataMapOfShapeListOfShape itf(theFFMap);
-  itf.Initialize(theFFMap);
-  for (; itf.More(); itf.Next()) {
+  for (TopTools_DataMapIteratorOfDataMapOfShapeListOfShape itf(theFFMap); itf.More(); itf.Next())
+  {
     for (itl.Initialize(itf.Value()); itl.More(); itl.Next()) {
       for (exp.Init(itl.Value(),TopAbs_EDGE); exp.More(); exp.Next()) {
 	const TopoDS_Edge& ed = TopoDS::Edge(exp.Current());
@@ -234,7 +233,8 @@ void LocOpe_Generator::Perform(const Handle(LocOpe_GeneratedShape)& G)
   TopTools_DataMapOfShapeShape DontFuse;
   TopAbs_Orientation orient,orface;
 
-  for (itf.Reset(); itf.More(); itf.Next()) {
+  for (TopTools_DataMapIteratorOfDataMapOfShapeListOfShape itf(theFFMap); itf.More(); itf.Next())
+  {
     const TopoDS_Face& fac = TopoDS::Face(itf.Key());
     for (exp.Init(fac,TopAbs_EDGE); exp.More(); exp.Next()) {
       const TopoDS_Edge& edg = TopoDS::Edge(exp.Current());
@@ -445,7 +445,8 @@ void LocOpe_Generator::Perform(const Handle(LocOpe_GeneratedShape)& G)
   TopTools_MapOfShape EdgAdded;
 
   // Fusion des faces, ou reconstruction
-  for (itf.Reset();itf.More(); itf.Next()) {
+  for (TopTools_DataMapIteratorOfDataMapOfShapeListOfShape itf(theFFMap);itf.More(); itf.Next())
+  {
     const TopoDS_Face& fac = TopoDS::Face(itf.Key());
     Standard_Boolean ModFace = Standard_False;
     TopTools_ListOfShape listofedg;
@@ -551,7 +552,7 @@ void LocOpe_Generator::Perform(const Handle(LocOpe_GeneratedShape)& G)
 		    // Tentative de recalage dans la facette
 		    pf = C2d->Value(f);
 		    pl = C2d->Value(l);
-		    Standard_Real tttol = Precision::Angular();
+		    constexpr Standard_Real tttol = Precision::Angular();
 		    while (Min(pf.X(),pl.X()) >= Umaxc-tttol) {
 		      C2d->Translate(gp_Vec2d(-2.*M_PI,0));
 		      pf = C2d->Value(f);
@@ -867,7 +868,7 @@ void LocOpe_Generator::Perform(const Handle(LocOpe_GeneratedShape)& G)
 		  // Tentative de recalage dans la facette
 		  pf = C2d->Value(f);
 		  pl = C2d->Value(l);
-		  Standard_Real tttol = Precision::Angular();
+		  constexpr Standard_Real tttol = Precision::Angular();
 		  while (Min(pf.X(),pl.X()) >= Umaxc - tttol) {
 		    C2d->Translate(gp_Vec2d(-2.*M_PI,0));
 		    pf = C2d->Value(f);
@@ -1056,8 +1057,8 @@ Standard_Boolean ToFuse(const TopoDS_Face& F1,
   Handle(Geom_Surface) S1,S2;
   TopLoc_Location loc1, loc2;
   Handle(Standard_Type) typS1,typS2;
-  const Standard_Real tollin = Precision::Confusion();
-  const Standard_Real tolang = Precision::Angular();
+  constexpr Standard_Real tollin = Precision::Confusion();
+  constexpr Standard_Real tolang = Precision::Angular();
 
   S1 = BRep_Tool::Surface(F1,loc1);
   S2 = BRep_Tool::Surface(F2,loc2);
@@ -1114,8 +1115,8 @@ Standard_Boolean ToFuse(const TopoDS_Edge& E1,
   Handle(Geom_Curve) C1,C2;
   TopLoc_Location loc1, loc2;
   Handle(Standard_Type) typC1,typC2;
-  const Standard_Real tollin = Precision::Confusion();
-  const Standard_Real tolang = Precision::Angular();
+  constexpr Standard_Real tollin = Precision::Confusion();
+  constexpr Standard_Real tolang = Precision::Angular();
   Standard_Real f,l;
 
   C1 = BRep_Tool::Curve(E1,loc1,f,l);

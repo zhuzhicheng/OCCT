@@ -23,6 +23,7 @@
 #include <IFSelect_SignCounter.hxx>
 #include <Interface_Macros.hxx>
 #include <Interface_Static.hxx>
+#include <MoniTool_Macros.hxx>
 #include <RWHeaderSection.hxx>
 #include <RWStepAP214.hxx>
 #include <Standard_Type.hxx>
@@ -35,6 +36,8 @@
 #include <STEPEdit.hxx>
 #include <STEPEdit_EditContext.hxx>
 #include <STEPEdit_EditSDR.hxx>
+#include <STEPControl_ActorRead.hxx>
+#include <StepData_StepModel.hxx>
 #include <StepSelect_WorkLibrary.hxx>
 #include <STEPSelections_SelectAssembly.hxx>
 #include <STEPSelections_SelectDerived.hxx>
@@ -54,6 +57,8 @@ STEPControl_Controller::STEPControl_Controller ()
 : XSControl_Controller ("STEP", "step")
 {
   static Standard_Boolean init = Standard_False;
+  static Standard_Mutex aMutex;
+  aMutex.Lock();
   if (!init) {
     RWHeaderSection::Init();  RWStepAP214::Init();
 
@@ -179,12 +184,67 @@ STEPControl_Controller::STEPControl_Controller ()
     Interface_Static::Init ("step","write.step.vertex.mode",'&',"eval One Compound");
     Interface_Static::Init ("step","write.step.vertex.mode",'&',"eval Single Vertex");
     Interface_Static::SetIVal("write.step.vertex.mode",0);
-  
+
     // abv 15.11.00: ShapeProcessing
-    Interface_Static::Init ("XSTEP","write.step.resource.name",'t',"STEP");
-    Interface_Static::Init ("XSTEP","read.step.resource.name",'t',"STEP");
-    Interface_Static::Init ("XSTEP","write.step.sequence",'t',"ToSTEP");
-    Interface_Static::Init ("XSTEP","read.step.sequence",'t',"FromSTEP");
+    Interface_Static::Init ("XSTEP", "write.step.resource.name",                      't', "STEP");
+    Interface_Static::Init ("XSTEP", "read.step.resource.name",                       't', "STEP");
+    Interface_Static::Init ("XSTEP", "write.step.sequence",                           't', "ToSTEP");
+    Interface_Static::Init ("XSTEP", "read.step.sequence",                            't', "FromSTEP");
+    Interface_Static::Init ("XSTEP", "ToSTEP.exec.op",                                't', "SplitCommonVertex,DirectFaces");
+    Interface_Static::Init ("XSTEP", "FromSTEP.exec.op",                              't', "FixShape");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.Tolerance3d",                 't', "&Runtime.Tolerance");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.MaxTolerance3d",              't', "&Runtime.MaxTolerance");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.MinTolerance3d",              't', "1.e-7");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixFreeShellMode",            't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixFreeFaceMode",             't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixFreeWireMode",             't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixSameParameterMode",        't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixSolidMode",                't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixShellOrientationMode",     't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.CreateOpenSolidMode",         't', "0");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixShellMode",                't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixFaceOrientationMode",      't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixFaceMode",                 't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixWireMode",                 't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixOrientationMode",          't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixAddNaturalBoundMode",      't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixMissingSeamMode",          't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixSmallAreaWireMode",        't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.RemoveSmallAreaFaceMode",     't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixIntersectingWiresMode",    't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixLoopWiresMode",            't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixSplitFaceMode",            't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.AutoCorrectPrecisionMode",    't', "1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.ModifyTopologyMode",          't', "0");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.ModifyGeometryMode",          't', "1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.ClosedWireMode",              't', "1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.PreferencePCurveMode",        't', "1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixReorderMode",              't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixSmallMode",                't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixConnectedMode",            't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixEdgeCurvesMode",           't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixDegeneratedMode",          't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixLackingMode",              't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixSelfIntersectionMode",     't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.RemoveLoopMode",              't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixReversed2dMode",           't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixRemovePCurveMode",         't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixRemoveCurve3dMode",        't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixAddPCurveMode",            't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixAddCurve3dMode",           't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixSeamMode",                 't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixShiftedMode",              't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixEdgeSameParameterMode",    't', "0");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixNotchedEdgesMode",         't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixTailMode",                 't', "0");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.MaxTailAngle",                't', "0.0");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.MaxTailWidth",                't', "-1.0");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixSelfIntersectingEdgeMode", 't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixIntersectingEdgesMode",    't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixNonAdjacentIntersectingEdgesMode", 't', "-1");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixVertexPositionMode",       't', "0");
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixShape.FixVertexToleranceMode",      't', "-1"); 
+    Interface_Static::Init ("XSTEP", "FromSTEP.FixFaceSize.Tolerance",                't', "1.e-7"); 
 
     // ika 28.07.16: Parameter to read all top level solids and shells,
     // should be used only in case of invalid shape_representation without links to shapes.
@@ -263,16 +323,15 @@ STEPControl_Controller::STEPControl_Controller ()
 
     init = Standard_True;
   }
+  aMutex.Unlock();
 
   Handle(STEPControl_ActorWrite) ActWrite = new STEPControl_ActorWrite;
-  ActWrite->SetGroupMode (Interface_Static::IVal("write.step.assembly"));
   myAdaptorWrite = ActWrite;
 
   Handle(StepSelect_WorkLibrary) swl = new StepSelect_WorkLibrary;
   swl->SetDumpLabel(1);
   myAdaptorLibrary  = swl;
   myAdaptorProtocol = STEPEdit::Protocol();
-  myAdaptorRead     = new STEPControl_ActorRead;  // par ex pour Recognize
 
   SetModeWrite (0,4);
   SetModeWriteHelp (0,"As Is");
@@ -347,6 +406,20 @@ Handle(Interface_InterfaceModel)  STEPControl_Controller::NewModel () const
   return STEPEdit::NewModel();
 }
 
+//=======================================================================
+//function : ActorRead
+//purpose  : 
+//=======================================================================
+Handle(Transfer_ActorOfTransientProcess) STEPControl_Controller::ActorRead(const Handle(Interface_InterfaceModel)& theModel) const
+{
+  DeclareAndCast(STEPControl_ActorRead, anAdap, myAdaptorRead);
+  if (anAdap.IsNull()) {
+    anAdap = new STEPControl_ActorRead(theModel);
+    anAdap->SetModel(theModel);
+  }
+  return anAdap;
+}
+
 //  ####    PROVISOIRE ???   ####
 
 IFSelect_ReturnStatus  STEPControl_Controller::TransferWriteShape
@@ -361,7 +434,7 @@ IFSelect_ReturnStatus  STEPControl_Controller::TransferWriteShape
     Handle(STEPControl_ActorWrite)::DownCast(myAdaptorWrite);
 //    A PRESENT ON PASSE PAR LE PROFILE
   if (!ActWrite.IsNull()) 
-    ActWrite->SetGroupMode (Interface_Static::IVal("write.step.assembly"));
+    ActWrite->SetGroupMode (Handle(StepData_StepModel)::DownCast(model)->InternalParameters.WriteAssembly);
 
   return XSControl_Controller::TransferWriteShape(shape, FP, model, modeshape, theProgress);
 }

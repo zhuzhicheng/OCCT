@@ -44,6 +44,7 @@ public:
                             StepToTopoDS_NMTool& theNMTool,
                             const Standard_Boolean theReadTessellatedWhenNoBRepOnly,
                             Standard_Boolean& theHasGeom,
+                            const StepData_Factors& theLocalFactors = StepData_Factors(),
                             const Message_ProgressRange& theProgress = Message_ProgressRange());
 
   Standard_EXPORT const TopoDS_Shape& Value() const;

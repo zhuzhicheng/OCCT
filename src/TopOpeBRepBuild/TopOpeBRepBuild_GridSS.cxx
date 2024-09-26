@@ -79,7 +79,7 @@ Standard_EXPORT void TopOpeBRepDS_SetThePCurve
 //(const TopoDS_Face& fF,const TopoDS_Edge& E,Standard_Real& splitpar);
 
 //---------------------------------------------
-static Standard_Integer FUN_getG(const gp_Pnt& P,const TopOpeBRepDS_ListOfInterference& LI,const Handle(TopOpeBRepDS_HDataStructure) HDS,Standard_Integer& iEinterf)
+static Standard_Integer FUN_getG(const gp_Pnt& P,const TopOpeBRepDS_ListOfInterference& LI,const Handle(TopOpeBRepDS_HDataStructure)& HDS,Standard_Integer& iEinterf)
 //---------------------------------------------
 {
   TopOpeBRepDS_ListIteratorOfListOfInterference ILI(LI);
@@ -119,7 +119,7 @@ static Standard_Integer FUN_getG(const gp_Pnt& P,const TopOpeBRepDS_ListOfInterf
 #define DECREASEPERIOD (-1)
 	
 static Standard_Boolean FUN_EPIforEvisoONperiodicF
-(const TopoDS_Edge& E,const TopoDS_Face& F,const TopOpeBRepDS_ListOfInterference& EPIlist,const Handle(TopOpeBRepDS_HDataStructure) HDS,TopOpeBRepDS_ListOfInterference& loCPI)
+(const TopoDS_Edge& E,const TopoDS_Face& F,const TopOpeBRepDS_ListOfInterference& EPIlist,const Handle(TopOpeBRepDS_HDataStructure)& HDS,TopOpeBRepDS_ListOfInterference& loCPI)
 {
   Standard_Real parone=-1.e7;   
   TopOpeBRepTool_CORRISO CORRISO(F); CORRISO.Init(F);
@@ -620,7 +620,7 @@ Standard_EXPORT void FUNBUILD_ORIENTLOFS(TopOpeBRepBuild_Builder& B,
                                          TopTools_ListOfShape& LOFS)
 {
   for (TopTools_ListIteratorOfListOfShape it(LOFS);it.More();it.Next()) {
-    TopoDS_Shape& f = it.Value();
+    TopoDS_Shape& f = it.ChangeValue();
     Standard_Boolean of1,of2; FUNBUILD_ANCESTORRANKGET(B,f,of1,of2);
     TopAbs_Orientation orif = f.Orientation();
     Standard_Boolean r12 = B.Reverse(TB1,TB2); Standard_Boolean r21 = B.Reverse(TB2,TB1);

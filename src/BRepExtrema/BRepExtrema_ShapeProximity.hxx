@@ -37,7 +37,8 @@
 //! on distance less than the given tolerance from each other.
 //!
 //! Second approach:
-//! Compute the proximity value between two shapes if the tolerance is not defined (Precision::Infinite()).
+//! Compute the proximity value between two shapes (handles only edge/edge or face/face cases)
+//! if the tolerance is not defined (Precision::Infinite()).
 //! In this case the proximity value is a minimal thickness of a layer containing both shapes.
 //!
 //! For the both approaches the high performance is achieved through the use of existing
@@ -46,8 +47,6 @@
 //! triangulation).
 class BRepExtrema_ShapeProximity
 {
-public:
-  typedef typename BRepExtrema_ProximityValueTool::ProxPnt_Status ProxPnt_Status;
 
 public:
 
@@ -195,7 +194,7 @@ private:
 
   //! Reference point of the proximity value on the 1st shape.
   gp_Pnt myProxPoint1;
-  //! Reference point of the proximity value on the 2st shape.
+  //! Reference point of the proximity value on the 2nd shape.
   gp_Pnt myProxPoint2;
 
   //! Status of reference points of the proximity value.

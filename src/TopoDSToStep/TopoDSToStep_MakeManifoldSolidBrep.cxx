@@ -19,6 +19,8 @@
 #include <Interface_Static.hxx>
 #include <Message_ProgressScope.hxx>
 #include <StdFail_NotDone.hxx>
+#include <StepData_Factors.hxx>
+#include <StepData_StepModel.hxx>
 #include <StepShape_ClosedShell.hxx>
 #include <StepShape_HArray1OfFace.hxx>
 #include <StepShape_ManifoldSolidBrep.hxx>
@@ -38,17 +40,18 @@
 static std::pair<Handle(StepShape_ManifoldSolidBrep), Handle(StepVisual_TessellatedItem)>
 MakeManifoldSolidBrep(const TopoDS_Shell& aShell,
                       const Handle(Transfer_FinderProcess)& FP,
+                      const StepData_Factors& theLocalFactors,
                       const Message_ProgressRange& theProgress)
 {
   Handle(StepShape_ManifoldSolidBrep) theManifoldSolidBrep;
   Handle(StepVisual_TessellatedItem) aTessItem;
 
   MoniTool_DataMapOfShapeTransient aMap;
-  TopoDSToStep_Tool aTool(aMap, Standard_False);
+  Handle(StepData_StepModel) aStepModel = Handle(StepData_StepModel)::DownCast(FP->Model());
+  TopoDSToStep_Tool aTool(aMap, Standard_False, aStepModel->InternalParameters.WriteSurfaceCurMode);
+  const Standard_Integer aWriteTessGeom = aStepModel->InternalParameters.WriteTessellated;
 
-  const Standard_Integer aWriteTessGeom = Interface_Static::IVal("write.step.tessellated");
-
-  TopoDSToStep_Builder StepB(aShell, aTool, FP, aWriteTessGeom, theProgress);
+  TopoDSToStep_Builder StepB(aShell, aTool, FP, aWriteTessGeom, theLocalFactors, theProgress);
   if (theProgress.UserBreak())
     return std::make_pair(theManifoldSolidBrep, aTessItem);
 
@@ -81,10 +84,11 @@ MakeManifoldSolidBrep(const TopoDS_Shell& aShell,
 TopoDSToStep_MakeManifoldSolidBrep::
   TopoDSToStep_MakeManifoldSolidBrep(const TopoDS_Shell& aShell,
                                      const Handle(Transfer_FinderProcess)& FP,
+                                     const StepData_Factors& theLocalFactors,
                                      const Message_ProgressRange& theProgress)
 {
   std::pair<Handle(StepShape_ManifoldSolidBrep), Handle(StepVisual_TessellatedItem)>
-    aResult = MakeManifoldSolidBrep(aShell, FP, theProgress);
+    aResult = MakeManifoldSolidBrep(aShell, FP, theLocalFactors, theProgress);
   done = !aResult.first.IsNull() || !aResult.second.IsNull();
   if (done) 
   {
@@ -106,13 +110,14 @@ TopoDSToStep_MakeManifoldSolidBrep::
 TopoDSToStep_MakeManifoldSolidBrep::
   TopoDSToStep_MakeManifoldSolidBrep(const TopoDS_Solid& aSolid,
                                      const Handle(Transfer_FinderProcess)& FP,
+                                     const StepData_Factors& theLocalFactors,
                                      const Message_ProgressRange& theProgress)
 {
   TopoDS_Shell aOuterShell = BRepClass3d::OuterShell(aSolid);
   if (!aOuterShell.IsNull())
   {
     std::pair<Handle(StepShape_ManifoldSolidBrep), Handle(StepVisual_TessellatedItem)>
-      aResult = MakeManifoldSolidBrep(aOuterShell, FP, theProgress);
+      aResult = MakeManifoldSolidBrep(aOuterShell, FP, theLocalFactors, theProgress);
     done = !aResult.first.IsNull() || !aResult.second.IsNull();
     if (done) 
     {

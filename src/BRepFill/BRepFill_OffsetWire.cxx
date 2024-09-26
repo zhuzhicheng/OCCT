@@ -570,7 +570,7 @@ void BRepFill_OffsetWire::Perform (const Standard_Real Offset,
       TopoDS_Iterator itws( myWorkSpine );
       for (; itws.More(); itws.Next())
       {
-        TopoDS_Shape aWire = itws.Value();
+        const TopoDS_Shape& aWire = itws.Value();
         aSubst.Build( aWire );
         if (aSubst.IsCopied(aWire))
         {
@@ -926,7 +926,7 @@ void BRepFill_OffsetWire::PerformWithBiLo
     if (StartOnEdge) {
       Standard_Boolean Start = 1;
       Trim.AddOrConfuse(Start, E[0], E[1], Params);
-      if (Params.Length() == Vertices.Length()) 
+      if (Params.Length() == Vertices.Length() && Params.Length() != 0)
         Vertices.SetValue(1,VS);
       
       else
@@ -936,7 +936,7 @@ void BRepFill_OffsetWire::PerformWithBiLo
     if (EndOnEdge) {	  
       Standard_Boolean Start = 0;
       Trim.AddOrConfuse(Start, E[0], E[1], Params);
-      if (Params.Length() == Vertices.Length()) 
+      if (Params.Length() == Vertices.Length() && Params.Length() != 0)
         Vertices.SetValue(Params.Length(),VE);
       
       else
@@ -962,7 +962,7 @@ void BRepFill_OffsetWire::PerformWithBiLo
     // Storage of vertices on parallel edges.
     // fill MapBis and MapVerPar.
     //----------------------------------------------
-    if (!Vertices.IsEmpty()) {
+    if (!Vertices.IsEmpty() && Params.Length() == Vertices.Length()) {
       for (k = 0; k <= 1; k++) {
         if (!MapBis.IsBound(E[k])) {
           MapBis   .Bind(E[k],EmptySeq);
@@ -1068,8 +1068,8 @@ void BRepFill_OffsetWire::PerformWithBiLo
         {
           const TopTools_ListOfShape& listSh = aSubst.Copy(itl.Value());
           TopAbs_Orientation SaveOr = itl.Value().Orientation();
-          itl.Value() = listSh.First();
-          itl.Value().Orientation(SaveOr);
+          itl.ChangeValue() = listSh.First();
+          itl.ChangeValue().Orientation(SaveOr);
         }
       }
     }
@@ -1198,7 +1198,9 @@ void BRepFill_OffsetWire::PrepareSpine()
       // Cut
       TopoDS_Shape aLocalShape = E.Oriented(TopAbs_FORWARD);
       //  Modified by Sergey KHROMOV - Thu Nov 16 17:29:29 2000 Begin
-      if (nbEdges == 2 && nbResEdges == 0)
+      Handle(BRep_TEdge) TEdge = Handle(BRep_TEdge)::DownCast(E.TShape());
+      const Standard_Integer aNumCurvesInEdge = TEdge->Curves().Size();
+      if (nbEdges == 2 && nbResEdges == 0 && aNumCurvesInEdge > 1)
         ForcedCut = 1;
       //  Modified by Sergey KHROMOV - Thu Nov 16 17:29:33 2000 End
       nbResEdges = CutEdge (TopoDS::Edge(aLocalShape), mySpine, ForcedCut, Cuts);
@@ -1298,7 +1300,7 @@ void BRepFill_OffsetWire::UpdateDetromp (BRepFill_DataMapOfOrientedShapeListOfSh
       ii++; 
     }
     
-    while (ii <= Vertices.Length()) {
+    while (ii <= Vertices.Length() && ii <= Params.Length()) {
       U2 = Params.Value(ii).X();
       V2 = TopoDS::Vertex(Vertices.Value(ii));
       
@@ -1911,8 +1913,8 @@ void CutCurve (const Handle(Geom2d_TrimmedCurve)& C,
   Standard_Real               UF,UL,UC;
   Standard_Real               Step;
   gp_Pnt2d                    PF,PL,PC;
-  Standard_Real               PTol  = Precision::PConfusion()*10;
-  Standard_Real               Tol   = Precision::Confusion()*10;
+  constexpr Standard_Real     PTol  = Precision::PConfusion()*10;
+  constexpr Standard_Real     Tol   = Precision::Confusion()*10;
   Standard_Boolean            YaCut = Standard_False;
 
   UF = C->FirstParameter();
@@ -2139,7 +2141,7 @@ Standard_Boolean VertexFromNode (const Handle(MAT_Node)&      aNode,
   TopoDS_Vertex&               VN)
 {  
   Standard_Boolean Status;
-  Standard_Real    Tol = Precision::Confusion();
+  constexpr Standard_Real Tol = Precision::Confusion();
   BRep_Builder     B;
 
   if (!aNode->Infinite() && Abs(aNode->Distance()-Offset) < Tol) {
@@ -2241,7 +2243,7 @@ void TrimEdge (const TopoDS_Edge&              E,
   // otherwise preserve only one of its representations.
   //----------------------------------------------------------
   if (!BRep_Tool::Degenerated(E)) {
-    Standard_Real aParTol = 2.0 * Precision::PConfusion();
+    constexpr Standard_Real aParTol = 2.0 * Precision::PConfusion();
     for (Standard_Integer k = 1; k < TheVer.Length(); k ++) {
       if (TheVer.Value(k).IsSame(TheVer.Value(k+1)) || 
           Abs(ThePar.Value(k)-ThePar.Value(k+1)) <= aParTol) {
@@ -2485,7 +2487,7 @@ static void CheckBadEdges(const TopoDS_Face& Spine, const Standard_Real Offset,
 {
 
   TopoDS_Face F = TopoDS::Face(Spine.Oriented(TopAbs_FORWARD));
-  Standard_Real eps = Precision::Confusion(); 
+  constexpr Standard_Real eps = Precision::Confusion();
   Standard_Real LimCurv = 1./Offset;
 
   TopTools_MapOfShape aMap;

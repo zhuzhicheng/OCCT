@@ -22,6 +22,7 @@
 #include <Standard_Handle.hxx>
 
 #include <GeomToStep_Root.hxx>
+
 class StepGeom_BoundedCurve;
 class Geom_BoundedCurve;
 class Geom2d_BoundedCurve;
@@ -39,9 +40,11 @@ public:
   DEFINE_STANDARD_ALLOC
 
   
-  Standard_EXPORT GeomToStep_MakeBoundedCurve(const Handle(Geom_BoundedCurve)& C);
+  Standard_EXPORT GeomToStep_MakeBoundedCurve(const Handle(Geom_BoundedCurve)& C,
+                                              const StepData_Factors& theLocalFactors = StepData_Factors());
   
-  Standard_EXPORT GeomToStep_MakeBoundedCurve(const Handle(Geom2d_BoundedCurve)& C);
+  Standard_EXPORT GeomToStep_MakeBoundedCurve(const Handle(Geom2d_BoundedCurve)& C,
+                                              const StepData_Factors& theLocalFactors = StepData_Factors());
   
   Standard_EXPORT const Handle(StepGeom_BoundedCurve)& Value() const;
 

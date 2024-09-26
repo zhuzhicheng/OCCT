@@ -15,7 +15,6 @@
 #define _Message_PrinterToReport_HeaderFile
 
 #include <Message_Printer.hxx>
-#include <Standard_Address.hxx>
 #include <TCollection_AsciiString.hxx>
 
 class Message_Report;
@@ -61,7 +60,7 @@ protected:
                                      const Message_Gravity theGravity) const Standard_OVERRIDE;
 
   //! Send an alert with metrics active in the current report
-  Standard_EXPORT void sendMetricAlert (const TCollection_AsciiString theValue,
+  Standard_EXPORT void sendMetricAlert (const TCollection_AsciiString& theValue,
                                         const Message_Gravity theGravity) const;
 
 private:

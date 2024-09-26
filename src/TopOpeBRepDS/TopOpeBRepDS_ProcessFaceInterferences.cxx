@@ -152,7 +152,7 @@ Standard_EXPORT void FUN_unkeepFdoubleGBoundinterferences
   
   it1.Initialize(LI);
   while (it1.More() ) {
-    Handle(TopOpeBRepDS_Interference)& I1 = it1.Value();
+    Handle(TopOpeBRepDS_Interference)& I1 = it1.ChangeValue();
     TopOpeBRepDS_Kind GT1,ST1; Standard_Integer G1,S1;
     const TopOpeBRepDS_Transition& T1 = I1->Transition();
     Standard_Boolean isunk1 = T1.IsUnknown();
@@ -217,7 +217,7 @@ Standard_EXPORT void FUN_resolveFUNKNOWN
   // process interferences of LI with UNKNOWN transition
   
   for (it1.Initialize(LI); it1.More(); it1.Next() ) {
-    Handle(TopOpeBRepDS_Interference)& I1 = it1.Value();
+    Handle(TopOpeBRepDS_Interference)& I1 = it1.ChangeValue();
     const TopOpeBRepDS_Transition& T1 = I1->Transition();
     Standard_Boolean isunk = T1.IsUnknown();
     if (!isunk) continue;
@@ -291,7 +291,7 @@ Standard_EXPORT void FUN_resolveFUNKNOWN
         //      to determine transition relatively solid rather then face
         //      if possible (see pb. in CFE002 C2, when SIX==13)
         Standard_Integer rankFS = BDS.AncestorRank(S1);
-        TopoDS_Shape aSRef = BDS.Shape(rankFS);
+        const TopoDS_Shape& aSRef = BDS.Shape(rankFS);
         TopExp_Explorer ex(aSRef,TopAbs_SOLID);
         if (ex.More()) {
           pClass = pClassif;

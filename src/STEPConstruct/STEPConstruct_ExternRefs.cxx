@@ -229,7 +229,7 @@ Standard_Boolean STEPConstruct_ExternRefs::LoadExternRefs ()
       // for each DocumentFile, find associated with it data:
       Interface_EntityIterator subs = Graph().Sharings(DocFile);
       for (subs.Start(); subs.More(); subs.Next()) {
-        Handle(Standard_Transient) sub = subs.Value();
+        const Handle(Standard_Transient)& sub = subs.Value();
         
         // FORMAT - ???????
         //
@@ -652,14 +652,14 @@ Standard_Integer STEPConstruct_ExternRefs::AddExternRef (const Standard_CString 
     //Handle(StepBasic_ProductDefinitionWithAssociatedDocuments) PDWAD = 
     //  Handle(StepBasic_ProductDefinitionWithAssociatedDocuments)::DownCast(PD);
     
-    // searh in graph for replace
+    // search in graph for replace
 //    Standard_Integer numProdDef;
 //    Interface_EntityIterator subs = Graph().Shareds(SDR);
 //    for (subs.Start(); subs.More(); subs.Next()) {
 //      Handle(Standard_Transient) sub = subs.Value();
     Interface_EntityIterator subs = Graph().Sharings(PD);
     for (subs.Start(); subs.More(); subs.Next()) {
-      Handle(Standard_Transient) sub = subs.Value();
+      const Handle(Standard_Transient)& sub = subs.Value();
       if (!sub->IsKind(STANDARD_TYPE(StepRepr_ProductDefinitionShape))) continue;
       Handle(StepRepr_ProductDefinitionShape) ProdDefSh = 
         Handle(StepRepr_ProductDefinitionShape)::DownCast ( sub );
@@ -682,7 +682,7 @@ Standard_Integer STEPConstruct_ExternRefs::AddExternRef (const Standard_CString 
 //        Interface_EntityIterator subs2 = Graph().Sharings(ProdDef);
     Interface_EntityIterator subs2 = Graph().Sharings(PD);
     for (subs2.Start(); subs2.More(); subs2.Next()) {
-      Handle(Standard_Transient) sub2 = subs2.Value();
+      const Handle(Standard_Transient)& sub2 = subs2.Value();
 
       if (sub2->IsKind(STANDARD_TYPE(StepRepr_NextAssemblyUsageOccurrence))) {
         Handle(StepRepr_NextAssemblyUsageOccurrence) NAUO = 
@@ -832,7 +832,7 @@ Standard_Boolean STEPConstruct_ExternRefs::addAP214ExterRef (const Handle(StepAP
 
   // create new product definition formation
   Handle(StepBasic_ProductDefinitionFormation) PDF = new StepBasic_ProductDefinitionFormation;
-  // name id taked from example Standard_ExtString_ref_master.stp
+  // name id taken from example Standard_ExtString_ref_master.stp
   Handle(TCollection_HAsciiString) PDF_ID = new TCollection_HAsciiString("1");
   PDF->Init( PDF_ID, EmptyString, Product );
   

@@ -70,6 +70,16 @@ foreach (OCCT_PACKAGE ${USED_PACKAGES})
     OCCT_ORIGIN_AND_PATCHED_FILES ("${RELATIVE_SOURCES_DIR}/${OCCT_PACKAGE}" "*[.]lex" SOURCE_FILES_FLEX)
     list (LENGTH SOURCE_FILES_FLEX SOURCE_FILES_FLEX_LEN)
 
+    # remove old general version of FlexLexer
+    if (EXISTS ${CMAKE_SOURCE_DIR}/${RELATIVE_SOURCES_DIR}/FlexLexer/FlexLexer.h)
+      message (STATUS "Info: remove old FLEX header file: ${CMAKE_SOURCE_DIR}/${RELATIVE_SOURCES_DIR}/FlexLexer/FlexLexer.h")
+      file(REMOVE ${CMAKE_SOURCE_DIR}/${RELATIVE_SOURCES_DIR}/FlexLexer/FlexLexer.h)
+    endif()
+    # install copy of FlexLexer.h locally to allow further building without flex
+    if (FLEX_INCLUDE_DIR AND EXISTS "${FLEX_INCLUDE_DIR}/FlexLexer.h")
+      configure_file("${FLEX_INCLUDE_DIR}/FlexLexer.h" "${CMAKE_SOURCE_DIR}/${RELATIVE_SOURCES_DIR}/FlexLexer/FlexLexer.h" @ONLY NEWLINE_STYLE LF)
+    endif()
+
     # bison files
     OCCT_ORIGIN_AND_PATCHED_FILES ("${RELATIVE_SOURCES_DIR}/${OCCT_PACKAGE}" "*[.]yacc" SOURCE_FILES_BISON)
     list (LENGTH SOURCE_FILES_BISON SOURCE_FILES_BISON_LEN)
@@ -107,21 +117,11 @@ foreach (OCCT_PACKAGE ${USED_PACKAGES})
             endif()
           endforeach()
 
-          if (EXISTS ${FLEX_BISON_TARGET_DIR}/FlexLexer.h)
-            message (STATUS "Info: remove old FLEX header file: ${FLEX_BISON_TARGET_DIR}/FlexLexer.h")
-            file(REMOVE ${FLEX_BISON_TARGET_DIR}/FlexLexer.h)
-          endif()
-
           file (STRINGS "${CURRENT_FLEX_FILE}" FILE_FLEX_CONTENT)
           foreach (FILE_FLEX_CONTENT_LINE ${FILE_FLEX_CONTENT})
             string (REGEX MATCH "%option c\\+\\+" CXX_FLEX_LANGUAGE_FOUND ${FILE_FLEX_CONTENT_LINE})
             if (CXX_FLEX_LANGUAGE_FOUND)
               set (FLEX_OUTPUT_FILE_EXT "cxx")
-
-              # install copy of FlexLexer.h locally to allow further building without flex
-              if (FLEX_INCLUDE_DIR AND EXISTS "${FLEX_INCLUDE_DIR}/FlexLexer.h")
-                configure_file("${FLEX_INCLUDE_DIR}/FlexLexer.h" "${FLEX_BISON_TARGET_DIR}/FlexLexer.h" @ONLY NEWLINE_STYLE LF)
-              endif()
             endif()
           endforeach()
           set (BISON_OUTPUT_FILE ${CURRENT_BISON_FILE_NAME}.tab.${BISON_OUTPUT_FILE_EXT})
@@ -245,6 +245,18 @@ endif (USE_QT)
 if (EXECUTABLE_PROJECT)
   add_executable (${PROJECT_NAME} ${USED_SRCFILES} ${USED_INCFILES} ${USED_RCFILE} ${RESOURCE_FILES} ${${PROJECT_NAME}_MOC_FILES})
 
+  if (DEFINED ${PROJECT_NAME}_DISABLE_COTIRE AND ${PROJECT_NAME}_DISABLE_COTIRE)
+    set_target_properties(${PROJECT_NAME} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
+    set_target_properties(${PROJECT_NAME} PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
+  else()
+    # To avoid excluding of PROJECT_NAME from cotire tool, we may use cotire
+    # COTIRE_PREFIX_HEADER_IGNORE_PATH instead. But, practically it causes many 'undefined symbols' error.
+    # So, we just exclude PROJECT_NAME from cotire list.
+    # if (DEFINED ${PROJECT_NAME}_COTIRE_IGNORE_PATH)
+    #   set_target_properties(${PROJECT_NAME} PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "${${PROJECT_NAME}_COTIRE_IGNORE_PATH}")
+    # endif()
+  endif()
+
   install (TARGETS ${PROJECT_NAME}
            DESTINATION "${INSTALL_DIR_BIN}\${OCCT_INSTALL_BIN_LETTER}")
 
@@ -254,15 +266,33 @@ if (EXECUTABLE_PROJECT)
 else()
   add_library (${PROJECT_NAME} ${USED_SRCFILES} ${USED_INCFILES} ${USED_RCFILE} ${RESOURCE_FILES} ${${PROJECT_NAME}_MOC_FILES})
 
+  if (DEFINED ${PROJECT_NAME}_DISABLE_COTIRE AND ${PROJECT_NAME}_DISABLE_COTIRE)
+    set_target_properties(${PROJECT_NAME} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
+    set_target_properties(${PROJECT_NAME} PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
+  else()
+    # To avoid excluding of PROJECT_NAME from cotire tool, we may use cotire
+    # COTIRE_PREFIX_HEADER_IGNORE_PATH instead. But, practically it causes many 'undefined symbols' error.
+    # So, we just exclude PROJECT_NAME from cotire list.
+    # if (DEFINED ${PROJECT_NAME}_COTIRE_IGNORE_PATH)
+    #   set_target_properties(${PROJECT_NAME} PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "${${PROJECT_NAME}_COTIRE_IGNORE_PATH}")
+    # endif()
+  endif()
+
   if (MSVC)
     if (BUILD_FORCE_RelWithDebInfo)
       set (aReleasePdbConf "Release")
     else()
       set (aReleasePdbConf)
     endif()
-    install (FILES  ${CMAKE_BINARY_DIR}/${OS_WITH_BIT}/${COMPILER}/bin\${OCCT_INSTALL_BIN_LETTER}/${PROJECT_NAME}.pdb
+    if (BUILD_SHARED_LIBS)
+      install (FILES  ${CMAKE_BINARY_DIR}/${OS_WITH_BIT}/${COMPILER}/bin\${OCCT_INSTALL_BIN_LETTER}/${PROJECT_NAME}.pdb
              CONFIGURATIONS Debug ${aReleasePdbConf} RelWithDebInfo
              DESTINATION "${INSTALL_DIR_BIN}\${OCCT_INSTALL_BIN_LETTER}")
+    else()
+      install (FILES  ${CMAKE_BINARY_DIR}/${OS_WITH_BIT}/${COMPILER}/lib\${OCCT_INSTALL_BIN_LETTER}/${PROJECT_NAME}.pdb
+             CONFIGURATIONS Debug ${aReleasePdbConf} RelWithDebInfo
+             DESTINATION "${INSTALL_DIR_LIB}\${OCCT_INSTALL_BIN_LETTER}")
+    endif()
   endif()
 
   if (BUILD_SHARED_LIBS AND NOT "${BUILD_SHARED_LIBRARY_NAME_POSTFIX}" STREQUAL "")
@@ -346,6 +376,10 @@ foreach (USED_ITEM ${USED_EXTERNLIB_AND_TOOLKITS})
             add_definitions (-DHAVE_GLES2)
           endif()
 
+          if ("${CURRENT_CSF}" STREQUAL "${CSF_Draco}")
+            set (CURRENT_CSF "")
+            set (USED_DRACO 1)
+          endif()
           set (LIBRARY_FROM_CACHE 0)
           separate_arguments (CURRENT_CSF)
           foreach (CSF_LIBRARY ${CURRENT_CSF})
@@ -373,7 +407,7 @@ foreach (USED_ITEM ${USED_EXTERNLIB_AND_TOOLKITS})
             endforeach()
           endforeach()
 
-          if (NOT ${LIBRARY_FROM_CACHE})
+          if (NOT ${LIBRARY_FROM_CACHE} AND NOT "${CURRENT_CSF}" STREQUAL "")
             # prepare a list from a string with whitespaces
             separate_arguments (CURRENT_CSF)
             list (APPEND USED_EXTERNAL_LIBS_BY_CURRENT_PROJECT ${CURRENT_CSF})
@@ -383,6 +417,28 @@ foreach (USED_ITEM ${USED_EXTERNLIB_AND_TOOLKITS})
     endif()
   endif()
 endforeach()
+
+if (USE_DRACO)
+  if (USED_DRACO)
+    set (USED_LIB_RELEASE ${3RDPARTY_DRACO_LIBRARY})
+    if (WIN32)
+      set (USED_LIB_DEBUG ${3RDPARTY_DRACO_LIBRARY_DEBUG})
+    else()
+      set (USED_LIB_DEBUG ${3RDPARTY_DRACO_LIBRARY})
+    endif()
+    set (USED_LIB_CONF)
+    if (EXISTS ${USED_LIB_DEBUG})
+      set (USED_LIB_CONF "$<$<CONFIG:DEBUG>:${USED_LIB_DEBUG}>;${USED_LIB_CONF}")
+    endif()
+    if (EXISTS ${USED_LIB_RELEASE})
+      set (USED_LIB_CONF "$<$<CONFIG:RELEASE>:${USED_LIB_RELEASE}>;${USED_LIB_CONF}")
+      set (USED_LIB_CONF "$<$<CONFIG:RELWITHDEBINFO>:${USED_LIB_RELEASE}>;${USED_LIB_CONF}")
+    endif()
+    if (DEFINED USED_LIB_CONF)
+      set_property (TARGET ${PROJECT_NAME} APPEND PROPERTY LINK_LIBRARIES "${USED_LIB_CONF}")
+    endif()
+  endif()
+endif()
 
 if (APPLE)
   list (FIND USED_EXTERNAL_LIBS_BY_CURRENT_PROJECT X11 IS_X11_FOUND)
@@ -423,8 +479,8 @@ if (BUILD_SHARED_LIBS OR EXECUTABLE_PROJECT)
   if(IS_VTK_9XX)
     string (REGEX REPLACE "vtk" "VTK::" USED_TOOLKITS_BY_CURRENT_PROJECT "${USED_TOOLKITS_BY_CURRENT_PROJECT}")
   endif()
-  target_link_libraries (${PROJECT_NAME} ${USED_TOOLKITS_BY_CURRENT_PROJECT} ${USED_EXTERNAL_LIBS_BY_CURRENT_PROJECT})
 endif()
+target_link_libraries (${PROJECT_NAME} ${USED_TOOLKITS_BY_CURRENT_PROJECT} ${USED_EXTERNAL_LIBS_BY_CURRENT_PROJECT})
 
 if (USE_QT)
   foreach (PROJECT_LIBRARY_DEBUG ${PROJECT_LIBRARIES_DEBUG})

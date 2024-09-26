@@ -22,6 +22,7 @@
 #include <Standard_Handle.hxx>
 
 #include <GeomToStep_Root.hxx>
+
 class StepGeom_SurfaceOfRevolution;
 class Geom_SurfaceOfRevolution;
 
@@ -37,7 +38,8 @@ public:
   DEFINE_STANDARD_ALLOC
 
   
-  Standard_EXPORT GeomToStep_MakeSurfaceOfRevolution(const Handle(Geom_SurfaceOfRevolution)& RevSurf);
+  Standard_EXPORT GeomToStep_MakeSurfaceOfRevolution(const Handle(Geom_SurfaceOfRevolution)& RevSurf,
+                                                     const StepData_Factors& theLocalFactors = StepData_Factors());
   
   Standard_EXPORT const Handle(StepGeom_SurfaceOfRevolution)& Value() const;
 

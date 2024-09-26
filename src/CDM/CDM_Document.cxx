@@ -532,7 +532,7 @@ void CDM_Document::SetMetaData(const Handle(CDM_MetaData)& aMetaData)
 
     aMetaData->SetDocument(this);
 
-    // Update the document refencing this MetaData:
+    // Update the document referencing this MetaData:
     CDM_DataMapIteratorOfMetaDataLookUpTable it(Application()->MetaDataLookUpTable());
     for(;it.More();it.Next()) {
       const Handle(CDM_MetaData)& theMetaData=it.Value();
@@ -620,7 +620,7 @@ TCollection_ExtendedString CDM_Document::Folder() const {
 
 void CDM_Document::SetRequestedFolder(const TCollection_ExtendedString& aFolder)
 {
-  TCollection_ExtendedString f(aFolder);
+  const TCollection_ExtendedString& f = aFolder;
   if(f.Length() != 0) {
     myRequestedFolderIsDefined=Standard_True;
     myRequestedFolder=aFolder;
@@ -975,8 +975,8 @@ void CDM_Document::RemoveFromReference(const Standard_Integer aReferenceIdentifi
 //purpose  : 
 //=======================================================================
 
-TCollection_ExtendedString GetResource (const TCollection_ExtendedString aFormat,
-                                        const TCollection_ExtendedString anItem)
+TCollection_ExtendedString GetResource (const TCollection_ExtendedString& aFormat,
+                                        const TCollection_ExtendedString& anItem)
 {
   TCollection_ExtendedString theResource;
   theResource+= aFormat;

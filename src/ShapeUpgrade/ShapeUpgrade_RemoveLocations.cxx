@@ -52,7 +52,7 @@ ShapeUpgrade_RemoveLocations::ShapeUpgrade_RemoveLocations()
 
  Standard_Boolean ShapeUpgrade_RemoveLocations::Remove(const TopoDS_Shape& theShape) 
 {
-  TopoDS_Shape aShape = theShape;
+  const TopoDS_Shape& aShape = theShape;
   myShape = aShape;
   TopAbs_ShapeEnum shtype = theShape.ShapeType();
   Standard_Boolean isRemoveLoc = ((shtype != TopAbs_COMPOUND && myLevelRemoving == TopAbs_SHAPE) || 
@@ -179,7 +179,7 @@ Standard_Boolean ShapeUpgrade_RemoveLocations::MakeNewShape(const TopoDS_Shape& 
      aNewShape= myMapNewShapes.Find(aShape);
      aNewShape.Orientation(theShape.Orientation());
      if(!theRemoveLoc && !theShape.Location().IsIdentity()) {
-       TopLoc_Location aL = theShape.Location();
+       const TopLoc_Location& aL = theShape.Location();
        aNewShape.Location(aL);
      }
      if(shtype != TopAbs_EDGE) {
@@ -239,7 +239,7 @@ Standard_Boolean ShapeUpgrade_RemoveLocations::MakeNewShape(const TopoDS_Shape& 
   }
   isDone = aRebuild;
   
-  //Removing location from sub-shapes in dependance of LevelRemoving and re-building shape.
+  //Removing location from sub-shapes in dependence of LevelRemoving and re-building shape.
   
   if(!isBound) {
     if(!aRebuild)
@@ -256,7 +256,7 @@ Standard_Boolean ShapeUpgrade_RemoveLocations::MakeNewShape(const TopoDS_Shape& 
     aNewShape.Orientation(TopAbs_FORWARD);
     TopoDS_Iterator aIt(aShape,Standard_False,isRemoveLoc);
     for( ; aIt.More(); aIt.Next()) {
-      TopoDS_Shape subshape = aIt.Value();
+      const TopoDS_Shape& subshape = aIt.Value();
       TopoDS_Shape anewsubshape;
       Standard_Boolean isDoneSubShape = MakeNewShape(subshape,anAncShape,anewsubshape,isRemoveLoc);
       isDone = (isDone || isDoneSubShape);

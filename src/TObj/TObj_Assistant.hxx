@@ -18,7 +18,6 @@
 #ifndef TObj_Assistant_HeaderFile
 #define TObj_Assistant_HeaderFile
 
-#include <TObj_Common.hxx>
 #include <TColStd_SequenceOfTransient.hxx>
 #include <TColStd_IndexedMapOfTransient.hxx>
 
@@ -45,7 +44,7 @@ public:
 
   //! Binds model to the map
   static Standard_EXPORT void
-    BindModel     (const Handle(TObj_Model) theModel);
+    BindModel     (const Handle(TObj_Model)& theModel);
 
   //! Clears all records from the model map
   static Standard_EXPORT void

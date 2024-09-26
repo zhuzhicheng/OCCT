@@ -37,7 +37,8 @@ public:
   DEFINE_STANDARD_ALLOC
 
   
-  Standard_EXPORT GeomToStep_MakeCylindricalSurface(const Handle(Geom_CylindricalSurface)& CSurf);
+  Standard_EXPORT GeomToStep_MakeCylindricalSurface(const Handle(Geom_CylindricalSurface)& CSurf,
+                                                    const StepData_Factors& theLocalFactors = StepData_Factors());
   
   Standard_EXPORT const Handle(StepGeom_CylindricalSurface)& Value() const;
 

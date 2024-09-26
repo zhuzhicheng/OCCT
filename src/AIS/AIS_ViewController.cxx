@@ -332,6 +332,11 @@ void AIS_ViewController::flushBuffers (const Handle(AIS_InteractiveContext)& ,
       myGL.Dragging.ToStart = true;
       myGL.Dragging.PointStart = myUI.Dragging.PointStart;
     }
+    if (myUI.Dragging.ToConfirm)
+    {
+      myUI.Dragging.ToConfirm = false;
+      myGL.Dragging.ToConfirm = true;
+    }
     if (myUI.Dragging.ToMove)
     {
       myUI.Dragging.ToMove = false;
@@ -838,6 +843,7 @@ bool AIS_ViewController::UpdateMouseButtons (const Graphic3d_Vec2i& thePoint,
         }
         case AIS_MouseGesture_Zoom:
         case AIS_MouseGesture_ZoomWindow:
+        case AIS_MouseGesture_ZoomVertical:
         {
           if (!myToAllowZooming)
           {
@@ -928,6 +934,7 @@ bool AIS_ViewController::UpdateMousePosition (const Graphic3d_Vec2i& thePoint,
       myMouseClickCounter = 0;
       myMouseSingleButton = -1;
       myMouseStopDragOnUnclick = true;
+      myUI.Dragging.ToConfirm = true;
     }
   }
 
@@ -1037,6 +1044,7 @@ bool AIS_ViewController::UpdateMousePosition (const Graphic3d_Vec2i& thePoint,
       break;
     }
     case AIS_MouseGesture_Zoom:
+    case AIS_MouseGesture_ZoomVertical:
     {
       if (!myToAllowZooming)
       {
@@ -1045,12 +1053,19 @@ bool AIS_ViewController::UpdateMousePosition (const Graphic3d_Vec2i& thePoint,
       const double aZoomTol = theIsEmulated
                             ? double(myTouchToleranceScale) * myTouchZoomThresholdPx
                             : 0.0;
-      if (double (Abs (aDelta.x())) > aZoomTol)
+      const double aScrollDelta = myMouseActiveGesture == AIS_MouseGesture_Zoom
+                                ? aDelta.x()
+                                : aDelta.y();
+      if (Abs (aScrollDelta) > aZoomTol)
       {
-        if (UpdateZoom (Aspect_ScrollDelta (aDelta.x())))
+        if (UpdateZoom (Aspect_ScrollDelta (aScrollDelta)))
         {
           toUpdateView = true;
         }
+
+        myUI.Dragging.ToMove  = true;
+        myUI.Dragging.PointTo = thePoint;
+
         myMouseProgressPoint = thePoint;
       }
       break;
@@ -1075,7 +1090,6 @@ bool AIS_ViewController::UpdateMousePosition (const Graphic3d_Vec2i& thePoint,
         }
 
         aDelta.y() = -aDelta.y();
-        myMouseProgressPoint = thePoint;
         if (myUI.Panning.ToPan)
         {
           myUI.Panning.Delta += aDelta;
@@ -1085,6 +1099,12 @@ bool AIS_ViewController::UpdateMousePosition (const Graphic3d_Vec2i& thePoint,
           myUI.Panning.ToPan = true;
           myUI.Panning.Delta = aDelta;
         }
+
+        myUI.Dragging.ToMove  = true;
+        myUI.Dragging.PointTo = thePoint;
+
+        myMouseProgressPoint = thePoint;
+
         toUpdateView = true;
       }
       break;
@@ -2731,6 +2751,17 @@ void AIS_ViewController::OnObjectDragged (const Handle(AIS_InteractiveContext)& 
       }
       return;
     }
+    case AIS_DragAction_Confirmed:
+    {
+      if (myDragObject.IsNull())
+      {
+        return;
+      }
+
+      myDragObject->ProcessDragging (theCtx, theView, myDragOwner, myGL.Dragging.PointStart,
+                                     myGL.Dragging.PointTo, theAction);
+      return;
+    }
     case AIS_DragAction_Update:
     {
       if (myDragObject.IsNull())
@@ -3050,9 +3081,15 @@ void AIS_ViewController::handleDynamicHighlight (const Handle(AIS_InteractiveCon
     }
     else if (myGL.Dragging.ToMove)
     {
+      if (myGL.Dragging.ToConfirm)
+      {
+        OnObjectDragged (theCtx, theView, AIS_DragAction_Confirmed);
+      }
       OnObjectDragged (theCtx, theView, AIS_DragAction_Update);
       myGL.OrbitRotation.ToRotate = false;
       myGL.ViewRotation .ToRotate = false;
+      myGL.Panning      .ToPan = false;
+      myGL.ZoomActions.Clear();
     }
   }
 }

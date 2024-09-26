@@ -40,9 +40,17 @@ public:
   
   Standard_EXPORT StepToTopoDS_TranslatePolyLoop();
   
-  Standard_EXPORT StepToTopoDS_TranslatePolyLoop(const Handle(StepShape_PolyLoop)& PL, StepToTopoDS_Tool& T, const Handle(Geom_Surface)& S, const TopoDS_Face& F);
+  Standard_EXPORT StepToTopoDS_TranslatePolyLoop(const Handle(StepShape_PolyLoop)& PL,
+                                                 StepToTopoDS_Tool& T,
+                                                 const Handle(Geom_Surface)& S,
+                                                 const TopoDS_Face& F,
+                                                 const StepData_Factors& theLocalFactors = StepData_Factors());
   
-  Standard_EXPORT void Init (const Handle(StepShape_PolyLoop)& PL, StepToTopoDS_Tool& T, const Handle(Geom_Surface)& S, const TopoDS_Face& F);
+  Standard_EXPORT void Init (const Handle(StepShape_PolyLoop)& PL,
+                             StepToTopoDS_Tool& T,
+                             const Handle(Geom_Surface)& S,
+                             const TopoDS_Face& F,
+                             const StepData_Factors& theLocalFactors = StepData_Factors());
   
   Standard_EXPORT const TopoDS_Shape& Value() const;
   

@@ -91,6 +91,8 @@
 #include <TDocStd_Application.hxx>
 #include <TPrsStd_AISPresentation.hxx>
 #include <ExprIntrp_GenExp.hxx>
+#include <StepData_StepModel.hxx>
+#include <XSControl_WorkSession.hxx>
 
 #if ! defined(_WIN32)
 extern ViewerTest_DoubleMapOfInteractiveAndName& GetMapOfAIS();
@@ -212,14 +214,12 @@ static int BUC60610(Draw_Interpretor& di, Standard_Integer argc, const char ** a
   IR.TransferRoots();
   TopoDS_Shape aTopShape = IR.OneShape();
   TopExp_Explorer ex(aTopShape, TopAbs_EDGE);
-  Standard_Integer i=0;
   for( ; ex.More(); ex.Next()){
     const TopoDS_Edge &E = TopoDS::Edge(ex.Current());
     BRepAdaptor_Curve aCurve(E);
     GCPnts_UniformDeflection plin(aCurve, 0.1);
     di << "Num points = " << plin.NbPoints() << "\n";
     if(argc > 2) {
-      i++;
       Sprintf(Ch,"%s_%i",argv[2],1);
       DBRep::Set(Ch,E);
     }
@@ -440,7 +440,7 @@ Standard_Integer  OCC157(Draw_Interpretor& di,
     Handle(Geom_Surface) aSurf = FS.Surface();
     BRepBuilderAPI_MakeFace aMakeFace(aSurf,aWire,Standard_True);
     if(aMakeFace.IsDone()) {
-      TopoDS_Face aFace = aMakeFace.Face();
+      const TopoDS_Face& aFace = aMakeFace.Face();
       DBRep::Set(a[1],aFace);
     }
   }
@@ -569,7 +569,7 @@ static Standard_Integer OCC297 (Draw_Interpretor& di,Standard_Integer /*argc*/, 
 
   BRepBuilderAPI_MakeWire wire_(edg1_, edg2_, edg3_, edg4_);
   BRepBuilderAPI_MakeFace face_(wire_);
-  TopoDS_Face sh_ = face_.Face();
+  const TopoDS_Face& sh_ = face_.Face();
 
   int up = 1;
 
@@ -585,7 +585,7 @@ static Standard_Integer OCC297 (Draw_Interpretor& di,Standard_Integer /*argc*/, 
   myAISContext->Display(AISPoint, Standard_True);
 
   BRepPrimAPI_MakeHalfSpace half_(sh_, g_pnt);
-  TopoDS_Solid sol1_ = half_.Solid();
+  const TopoDS_Solid& sol1_ = half_.Solid();
 
   DBRep::Set("Face", sol1_);
 
@@ -1190,6 +1190,7 @@ static Standard_Integer OCC369(Draw_Interpretor& di, Standard_Integer argc, cons
 }
 
 #include <math_Matrix.hxx>
+#include <math_Vector.hxx>
 static Standard_Integer OCC524 (Draw_Interpretor& di, Standard_Integer argc, const char ** argv)
 {
   if(argc != 9){
@@ -1551,8 +1552,8 @@ static Standard_Integer OCC909 (Draw_Interpretor& di, Standard_Integer argc, con
   TopExp_Explorer TE(awire, TopAbs_VERTEX);
   if ( TE.More()) {
     BRepTools_WireExplorer WE;
-    for ( WE.Init(awire,aface); WE.More(); WE.Next()) {
-      TopoDS_Edge E = WE.Current();
+    for ( WE.Init(awire,aface); WE.More(); WE.Next())
+    {
       count++;
     }
   }
@@ -1864,6 +1865,7 @@ static Standard_Integer OCC1487 (Draw_Interpretor& di, Standard_Integer argc, co
 //=======================================================================
 TopoDS_Shape OCC1077_boolbl(BRepAlgoAPI_BooleanOperation& aBoolenaOperation,const Standard_Real aRadius)
 {
+  Standard_Real tesp = 1.e-4;
   Standard_Real t3d = 1.e-4;
   Standard_Real t2d = 1.e-5;
   Standard_Real ta  = 1.e-2;
@@ -1885,7 +1887,7 @@ TopoDS_Shape OCC1077_boolbl(BRepAlgoAPI_BooleanOperation& aBoolenaOperation,cons
       const TopoDS_Shape& cutsol = ex.Current();
 
       BRepFilletAPI_MakeFillet fill(cutsol);
-      fill.SetParams(ta, t3d, t2d, t3d, t2d, fl);
+      fill.SetParams(ta, tesp, t2d, t3d, t2d, fl);
       fill.SetContinuity(blend_cont, tapp_angle);
       its = aBoolenaOperation.SectionEdges();
       while (its.More())
@@ -2185,10 +2187,20 @@ static Standard_Integer OCC6143 (Draw_Interpretor& di, Standard_Integer argc, co
       di << "(Integer) Overflow...";
       //std::cout.flush();
       di << "\n";
-      Standard_Integer res, i=IntegerLast();
-      res = i + 1;
-      //++++ std::cout << " -- "<<res<<"="<<i<<"+1   Does not Caught... KO"<< std::endl;
-      //++++ Succes = Standard_False;
+#if defined(__clang__)
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Winteger-overflow"
+#elif defined(__GNUC__)
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Woverflow"
+#endif
+      constexpr Standard_Integer i=IntegerLast();
+      Standard_Integer res = i + 1;
+#if defined(__clang__)
+  #pragma clang diagnostic pop
+#elif defined(__GNUC__)
+  #pragma GCC diagnostic pop
+#endif
       di << "Not caught: " << i << " + 1 = " << res << ", still OK\n";
     }
     catch(Standard_Overflow const&) {
@@ -2210,8 +2222,8 @@ static Standard_Integer OCC6143 (Draw_Interpretor& di, Standard_Integer argc, co
       di << "(Real) Overflow...";
       //std::cout.flush();
       di << "\n";
-      Standard_Real res, r=RealLast();
-      res = r * r;
+      constexpr Standard_Real r = RealLast();
+      Standard_Real res = r * r;
       
       (void)sin(1.); //this function tests FPU flags and raises signal (tested on LINUX).
 
@@ -2242,8 +2254,8 @@ static Standard_Integer OCC6143 (Draw_Interpretor& di, Standard_Integer argc, co
       di << "(Real) Underflow";
       //std::cout.flush();
       di << "\n";
-      Standard_Real res, r = RealSmall();
-      res = r * r;
+      constexpr Standard_Real r = RealSmall();
+      Standard_Real res = r * r;
       //res = res + 1.;
       //++++ std::cout<<"-- "<<res<<"="<<r<<"*"<<r<<"   Does not Caught... KO"<<std::endl;
       //++++ Succes = Standard_False;
@@ -2636,7 +2648,7 @@ static Standard_Integer OCC8169 (Draw_Interpretor& di, Standard_Integer argc, co
 
   Handle(Geom_Surface) thePlane = BRep_Tool::Surface(theFace);
 
-  Standard_Real aConfusion = Precision::Confusion();
+  constexpr Standard_Real aConfusion = Precision::Confusion();
   Standard_Real aP1first, aP1last, aP2first, aP2last;
 
   Handle(Geom_Curve) aCurve1 = BRep_Tool::Curve(theEdge1, aP1first, aP1last);
@@ -3884,9 +3896,9 @@ int TestCopyPaste(const Handle(TDocStd_Document)& doc)
   return 0;
 }
 
-int TestOpenSave(TCollection_ExtendedString aFile1,
-		 TCollection_ExtendedString aFile2,
-		 TCollection_ExtendedString aFile3)
+int TestOpenSave(const TCollection_ExtendedString& aFile1,
+                 const TCollection_ExtendedString& aFile2,
+                 const TCollection_ExtendedString& aFile3)
 {
   // Std
   Handle(TDocStd_Document) doc_std, doc_std_open;
@@ -4497,7 +4509,7 @@ static Standard_Integer OCC20627 (Draw_Interpretor& di, Standard_Integer argc, c
       w.Close();
       TopoDS_Wire wireShape( w.Wire());
       BRepBuilderAPI_MakeFace faceBuilder(wireShape);
-      TopoDS_Face f( faceBuilder.Face());
+      const TopoDS_Face& f( faceBuilder.Face());
       BRepMesh_IncrementalMesh im(f,1);
       BRepTools::Clean(f);
     }
@@ -4538,7 +4550,7 @@ Standard_Integer OCC17424 (Draw_Interpretor& di, Standard_Integer argc, const ch
   gp_Dir dir(X_Dir, Y_Dir, Z_Dir);
   gp_Lin ray(origin, dir);
 
-  Standard_Real PSup = RealLast();
+  constexpr Standard_Real PSup = RealLast();
   intersector.PerformNearest(ray, PInf, PSup);
   if (intersector.NbPnt() != 0)
     {
@@ -4668,7 +4680,7 @@ Standard_Integer OCC22736 (Draw_Interpretor& di, Standard_Integer argc, const ch
   gp_Trsf2d Tcomp;
   Tcomp = M2.Multiplied(M1);
 
-  Standard_Real aTol = Precision::Confusion();
+  constexpr Standard_Real aTol = Precision::Confusion();
   Standard_Integer aStatus = 0;
 
   //After applying two times the same mirror the point is located on the same location OK

@@ -488,7 +488,7 @@ void DumpMapOfShapeWithState (const Standard_Integer iP,
 	////// aSplFacesState in order to propagate the state for faces.
 	nE=anEdgesToRestMap.Extent();
 	for (k=1; k<=nE; k++) {
-	  const TopoDS_Shape anEdge=anEdgesToRestMap(k);
+	  const TopoDS_Shape& anEdge=anEdgesToRestMap(k);
 	  if (aMapOfShapeWithState.Contains (anEdge)) {
 	    const TopOpeBRepDS_ShapeWithState& aSWS=aMapOfShapeWithState.FindFromKey(anEdge);
 	    TopAbs_State aState=aSWS.State();
@@ -497,7 +497,7 @@ void DumpMapOfShapeWithState (const Standard_Integer iP,
 	}
       } //end of else {// Wire has an interferences 
     } // next Wire
-  } // next interferred Face ... for (i=1; i<=nF; i++) ...
+  } // next interfered Face ... for (i=1; i<=nF; i++) ...
 }
 
 //=======================================================================

@@ -123,7 +123,7 @@ Handle(TColStd_HSequenceOfReal) ShapeAnalysis_TransferParametersProj::Perform
   Handle(TColStd_HSequenceOfReal) resKnots = new TColStd_HSequenceOfReal;
 
   Standard_Integer len = Knots->Length();
-  Standard_Real preci = 2*Precision::PConfusion();
+  constexpr Standard_Real preci = 2*Precision::PConfusion();
 
   Standard_Real first = (To2d ? myAC3d.FirstParameter() : myFirst);
   Standard_Real last  = (To2d ? myAC3d.LastParameter() : myLast);
@@ -231,7 +231,7 @@ Standard_Real ShapeAnalysis_TransferParametersProj::Perform(const Standard_Real 
 //function : CorrectParameter
 //purpose  : auxiliary
 //=======================================================================
-static Standard_Real CorrectParameter(const Handle(Geom2d_Curve) crv,
+static Standard_Real CorrectParameter(const Handle(Geom2d_Curve)& crv,
 				      const Standard_Real param)
 {
   if(crv->IsKind(STANDARD_TYPE(Geom2d_TrimmedCurve))) {
@@ -277,7 +277,7 @@ void ShapeAnalysis_TransferParametersProj::TransferRange(TopoDS_Edge& newEdge,
   gp_Pnt p1;
   gp_Pnt p2;
   Standard_Real alpha = 0, beta = 1;
-  Standard_Real preci = Precision::PConfusion();
+  constexpr Standard_Real preci = Precision::PConfusion();
   Standard_Real firstPar, lastPar;
   if(prevPar < currPar) {
     firstPar = prevPar;
@@ -580,7 +580,7 @@ TopoDS_Vertex ShapeAnalysis_TransferParametersProj::CopyNMVertex (const TopoDS_V
   //update tolerance
   Standard_Boolean needUpdate = Standard_False;
   gp_Pnt aPV = (*((Handle(BRep_TVertex)*)&anewV.TShape()))->Pnt();
-  TopLoc_Location toLoc = toedge.Location();
+  const TopLoc_Location& toLoc = toedge.Location();
   BRep_ListIteratorOfListOfCurveRepresentation toitcr
 	((*((Handle(BRep_TEdge)*)&toedge.TShape()))->ChangeCurves());
       

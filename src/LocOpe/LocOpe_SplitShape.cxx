@@ -457,7 +457,7 @@ Standard_Boolean LocOpe_SplitShape::Add(const TopTools_ListOfShape& Lwires,
         else
           {
             //we have to choose the direction
-            TopoDS_Edge aStartEdge = wexp.Current();
+            const TopoDS_Edge& aStartEdge = wexp.Current();
             TopTools_ListOfShape Ldirs;
             Ldirs.Append(aStartEdge);
             Ldirs.Append(NextSectionWire);
@@ -515,7 +515,7 @@ Standard_Boolean LocOpe_SplitShape::Add(const TopTools_ListOfShape& Lwires,
     const TopoDS_Wire& aHole = TopoDS::Wire(itl.Value());
     for (itlNewF.Initialize(NewFaces); itlNewF.More(); itlNewF.Next())
     {
-      TopoDS_Face& aNewFace = TopoDS::Face(itlNewF.Value());
+      TopoDS_Face& aNewFace = TopoDS::Face(itlNewF.ChangeValue());
       if (IsInside(aNewFace, aHole))
       {
         BB.Add(aNewFace, aHole);

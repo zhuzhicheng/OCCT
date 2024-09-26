@@ -14,6 +14,7 @@
 #include <DEXCAFCascade_ConfigurationNode.hxx>
 
 #include <DE_ConfigurationContext.hxx>
+#include <DE_PluginHolder.hxx>
 #include <DEXCAFCascade_Provider.hxx>
 #include <NCollection_Buffer.hxx>
 
@@ -26,6 +27,9 @@ namespace
     static const TCollection_AsciiString aScope = "provider";
     return aScope;
   }
+
+  // Wrapper to auto-load DE component
+  DE_PluginHolder<DEXCAFCascade_ConfigurationNode> THE_OCCT_XCAF_COMPONENT_PLUGIN;
 }
 
 //=======================================================================
@@ -34,9 +38,7 @@ namespace
 //=======================================================================
 DEXCAFCascade_ConfigurationNode::DEXCAFCascade_ConfigurationNode() :
   DE_ConfigurationNode()
-{
-  UpdateLoad();
-}
+{}
 
 //=======================================================================
 // function : DEXCAFCascade_ConfigurationNode
@@ -46,7 +48,6 @@ DEXCAFCascade_ConfigurationNode::DEXCAFCascade_ConfigurationNode(const Handle(DE
   :DE_ConfigurationNode(theNode)
 {
   InternalParameters = theNode->InternalParameters;
-  UpdateLoad();
 }
 
 //=======================================================================
@@ -128,7 +129,7 @@ Handle(DE_ConfigurationNode) DEXCAFCascade_ConfigurationNode::Copy() const
 //=======================================================================
 Handle(DE_Provider) DEXCAFCascade_ConfigurationNode::BuildProvider()
 {
-  return new DEXCAFCascade_Provider();
+  return new DEXCAFCascade_Provider (this);
 }
 
 //=======================================================================

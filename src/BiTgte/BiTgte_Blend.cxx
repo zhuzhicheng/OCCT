@@ -215,7 +215,7 @@ static Standard_Boolean IsInFace(const TopoDS_Edge& E,
 //purpose  : 
 //=======================================================================
 
-static void KPartCurve3d(TopoDS_Edge           Edge,
+static void KPartCurve3d(const TopoDS_Edge&           Edge,
 			 Handle(Geom2d_Curve)  Curve,
 			 Handle(Geom_Surface)  Surf)
 {
@@ -223,7 +223,7 @@ static void KPartCurve3d(TopoDS_Edge           Edge,
   // if not found call BRepLib::BuildCurve3d
 
   TopLoc_Location Loc;
-  Standard_Real Tol = Precision::Confusion();
+  constexpr Standard_Real Tol = Precision::Confusion();
 
   // Search only isos on analytical surfaces.
   Geom2dAdaptor_Curve C(Curve);
@@ -429,7 +429,7 @@ Handle(Geom_Curve) MakeCurve (const BiTgte_CurveOnEdge& HC)
     MakeCurve_Function F(HC);
     Standard_Integer Deg1, Deg2;
     Deg1 = Deg2 = 8;
-    Standard_Real Tol = Precision::Approximation();
+    constexpr Standard_Real Tol = Precision::Approximation();
     Approx_FitAndDivide Fit(F,Deg1,Deg2,Tol,Tol,Standard_True);
     Standard_Integer i;
     Standard_Integer NbCurves = Fit.NbMultiCurves();
@@ -552,7 +552,7 @@ static TopoDS_Edge MakeDegeneratedEdge(const Handle(Geom_Curve)& CC,
 				       const TopoDS_Vertex&    VfOnE)
 {
   BRep_Builder B;
-  Standard_Real Tol = Precision::Confusion();
+  constexpr Standard_Real Tol = Precision::Confusion();
   // kill trimmed curves
   Handle(Geom_Curve) C = CC;
   Handle(Geom_TrimmedCurve) CT = Handle(Geom_TrimmedCurve)::DownCast(C);
@@ -1420,12 +1420,12 @@ Standard_Integer BiTgte_Blend::NbBranches()
   exp.Init(Shells,TopAbs_SHELL);
   for (; exp.More(); exp.Next()) {
     // CurS = the current Shell.
-    const TopoDS_Shape CurS = exp.Current();
+    const TopoDS_Shape& CurS = exp.Current();
 
     TopExp_Explorer exp2(CurS, TopAbs_FACE);
     for (; exp2.More(); exp2.Next()) {
       // CurF = the current face of the current Shell.
-      const TopoDS_Shape CurF = exp2.Current();
+      const TopoDS_Shape& CurF = exp2.Current();
 
       for ( i = 1; i <= NbFaces; i++) {
 	const TopoDS_Shape& Center = myCenters(i);

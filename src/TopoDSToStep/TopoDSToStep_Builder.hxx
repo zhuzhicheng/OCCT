@@ -47,12 +47,14 @@ public:
                                        TopoDSToStep_Tool& T,
                                        const Handle(Transfer_FinderProcess)& FP,
                                        const Standard_Integer theTessellatedGeomParam,
+                                       const StepData_Factors& theLocalFactors = StepData_Factors(),
                                        const Message_ProgressRange& theProgress = Message_ProgressRange());
   
   Standard_EXPORT void Init (const TopoDS_Shape& S,
                              TopoDSToStep_Tool& T,
                              const Handle(Transfer_FinderProcess)& FP,
                              const Standard_Integer theTessellatedGeomParam,
+                             const StepData_Factors& theLocalFactors = StepData_Factors(),
                              const Message_ProgressRange& theProgress = Message_ProgressRange());
   
   Standard_EXPORT TopoDSToStep_BuilderError Error() const;

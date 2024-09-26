@@ -391,7 +391,7 @@ void IntTools_FaceFace::Perform (const TopoDS_Face& aF1,
       aItP2S.Initialize(myListOfPnts);
       for (; aItP2S.More(); aItP2S.Next())
       {
-        IntSurf_PntOn2S& aP2S=aItP2S.Value();
+        IntSurf_PntOn2S& aP2S=aItP2S.ChangeValue();
         aP2S.Parameters(aU1,aV1,aU2,aV2);
         aP2S.SetValue(aU2,aV2,aU1,aV1);
       }
@@ -977,7 +977,7 @@ void IntTools_FaceFace::MakeCurve(const Standard_Integer Index,
       fprm=aSeqFprm(i);
       lprm=aSeqLprm(i);
       //
-      Standard_Real aRealEpsilon=RealEpsilon();
+      constexpr Standard_Real aRealEpsilon=RealEpsilon();
       if (Abs(fprm) > aRealEpsilon || Abs(lprm-2.*M_PI) > aRealEpsilon) {
         //==============================================
         ////
@@ -990,15 +990,19 @@ void IntTools_FaceFace::MakeCurve(const Standard_Integer Index,
         if (typl == IntPatch_Circle || typl == IntPatch_Ellipse) {//// 
           if(myApprox1) { 
             Handle (Geom2d_Curve) C2d;
-            GeomInt_IntSS::BuildPCurves(fprm, lprm, Tolpc, 
-                        myHS1->Surface(), newc, C2d);
+            GeomInt_IntSS::BuildPCurves(fprm, lprm,
+                                        myHS1->FirstUParameter(), myHS1->LastUParameter(),
+                                        myHS1->FirstVParameter(), myHS1->LastVParameter(),
+                                        Tolpc, myHS1->Surface(), newc, C2d);
             aCurve.SetFirstCurve2d(C2d);
           }
 
           if(myApprox2) { 
             Handle (Geom2d_Curve) C2d;
-            GeomInt_IntSS::BuildPCurves(fprm,lprm,Tolpc,
-                    myHS2->Surface(),newc,C2d);
+            GeomInt_IntSS::BuildPCurves(fprm, lprm,
+                                        myHS2->FirstUParameter(), myHS2->LastUParameter(),
+                                        myHS2->FirstVParameter(), myHS2->LastVParameter(),
+                                        Tolpc, myHS2->Surface(), newc, C2d);
             aCurve.SetSecondCurve2d(C2d);
           }
         }
@@ -1059,15 +1063,19 @@ void IntTools_FaceFace::MakeCurve(const Standard_Integer Index,
               
               if(myApprox1) { 
                 Handle (Geom2d_Curve) C2d;
-                GeomInt_IntSS::BuildPCurves(fprm, lprm, Tolpc, 
-                        myHS1->Surface(), newc, C2d);
+                GeomInt_IntSS::BuildPCurves(fprm, lprm,
+                                            myHS1->FirstUParameter(), myHS1->LastUParameter(),
+                                            myHS1->FirstVParameter(), myHS1->LastVParameter(),
+                                            Tolpc, myHS1->Surface(), newc, C2d);
                 aCurve.SetFirstCurve2d(C2d);
               }
 
               if(myApprox2) { 
                 Handle (Geom2d_Curve) C2d;
-                GeomInt_IntSS::BuildPCurves(fprm, lprm, Tolpc,
-                        myHS2->Surface(), newc, C2d);
+                GeomInt_IntSS::BuildPCurves(fprm, lprm,
+                                            myHS2->FirstUParameter(), myHS2->LastUParameter(),
+                                            myHS2->FirstVParameter(), myHS2->LastVParameter(),
+                                            Tolpc, myHS2->Surface(), newc, C2d);
                 aCurve.SetSecondCurve2d(C2d);
               }
             }//  end of if (typl == IntPatch_Circle || typl == IntPatch_Ellipse)

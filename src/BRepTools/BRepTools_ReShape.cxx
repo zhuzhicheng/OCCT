@@ -11,7 +11,7 @@
 // Alternatively, this file may be used under the terms of Open CASCADE
 // commercial license or contractual agreement.
 
-//    abv 28.04.99 S4137: ading method Apply for work on all types of shapes
+//    abv 28.04.99 S4137: adding method Apply for work on all types of shapes
 //    sln 29.11.01 Bug24: correction iteration through map in method 'Status'
 //    sln 29.11.01 Bug22: correction of methods Replace and Value for case when mode myConsiderLocation is on
 
@@ -362,7 +362,7 @@ TopoDS_Shape BRepTools_ReShape::Apply (const TopoDS_Shape& shape,
   if(st == TopAbs_VERTEX || st == TopAbs_SHAPE)
     return shape;
   // define allowed types of components
-  //fix for SAMTECH bug OCC322 about abcense internal vertices after sewing. 
+  //fix for SAMTECH bug OCC322 about absent internal vertices after sewing. 
   /*
   switch ( st ) {
   case TopAbs_COMPOUND:  subt = TopAbs_SHAPE;  break;
@@ -388,7 +388,7 @@ TopoDS_Shape BRepTools_ReShape::Apply (const TopoDS_Shape& shape,
   // apply recorded modifications to subshapes
   Standard_Boolean isEmpty = Standard_True;
   for ( TopoDS_Iterator it(shape,Standard_False); it.More(); it.Next() ) {
-    TopoDS_Shape sh = it.Value();
+    const TopoDS_Shape& sh = it.Value();
     newsh = Apply ( sh, until );
     if ( newsh != sh ) {
       if ( myStatus & EncodeStatus(4)) //ShapeExtend::DecodeStatus ( myStatus, ShapeExtend_DONE4 ) )
@@ -402,14 +402,14 @@ TopoDS_Shape BRepTools_ReShape::Apply (const TopoDS_Shape& shape,
     if ( isEmpty )
       isEmpty = Standard_False;
     locStatus |= EncodeStatus(3);//ShapeExtend::EncodeStatus ( ShapeExtend_DONE3 );
-    if ( st == TopAbs_COMPOUND || newsh.ShapeType() == sh.ShapeType()) { //fix for SAMTECH bug OCC322 about abcense internal vertices after sewing.
+    if ( st == TopAbs_COMPOUND || newsh.ShapeType() == sh.ShapeType()) { //fix for SAMTECH bug OCC322 about absent internal vertices after sewing.
       B.Add ( result, newsh );
       continue;
     }
     Standard_Integer nitems = 0;
     for ( TopoDS_Iterator subit(newsh); subit.More(); subit.Next(), nitems++ ) {
-      TopoDS_Shape subsh = subit.Value();
-      if ( subsh.ShapeType() == sh.ShapeType() ) B.Add ( result, subsh );//fix for SAMTECH bug OCC322 about abcense internal vertices after sewing.
+      const TopoDS_Shape& subsh = subit.Value();
+      if ( subsh.ShapeType() == sh.ShapeType() ) B.Add ( result, subsh );//fix for SAMTECH bug OCC322 about absent internal vertices after sewing.
       else locStatus |= EncodeStatus(10);//ShapeExtend::EncodeStatus ( ShapeExtend_FAIL1 );
     }
     if ( ! nitems ) locStatus |= EncodeStatus(10);//ShapeExtend::EncodeStatus ( ShapeExtend_FAIL1 );

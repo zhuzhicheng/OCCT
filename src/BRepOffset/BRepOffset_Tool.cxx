@@ -326,7 +326,7 @@ static void BuildPCurves (const TopoDS_Edge&  E,
   if (!C2d.IsNull()) return;
 
   //Standard_Real Tolerance = Max(Precision::Confusion(),BRep_Tool::Tolerance(E));
-  Standard_Real Tolerance = Precision::Confusion();
+  constexpr Standard_Real Tolerance = Precision::Confusion();
 
   BRepAdaptor_Surface AS(F,0);
   BRepAdaptor_Curve   AC(E);
@@ -586,7 +586,7 @@ Standard_Boolean BRepOffset_Tool::FindCommonShapes(const TopoDS_Shape& theS1,
 
 static Standard_Boolean ToSmall (const Handle(Geom_Curve)& C)
 {
-  Standard_Real Tol = 10*Precision::Confusion();
+  constexpr Standard_Real Tol = 10*Precision::Confusion();
   Standard_Real m   = (C->FirstParameter()*0.668 + C->LastParameter()*0.332); 
   gp_Pnt P1 = C->Value(C->FirstParameter());
   gp_Pnt P2 = C->Value(C->LastParameter());
@@ -1530,7 +1530,7 @@ void BRepOffset_Tool::Inter3D(const TopoDS_Face& F1,
     }
   }
 
-  Standard_Real aSameParTol = Precision::Confusion();
+  constexpr Standard_Real aSameParTol = Precision::Confusion();
   Standard_Boolean isEl1 = Standard_False, isEl2 = Standard_False;
 
   Handle(Geom_Surface) aSurf = BRep_Tool::Surface(F1);
@@ -1881,6 +1881,10 @@ Standard_Boolean BRepOffset_Tool::TryProject
     if (C.IsNull()) {
       BRepLib::BuildCurve3d(CurE,BRep_Tool::Tolerance(CurE));
       C  = BRep_Tool::Curve(CurE,L,f,l);
+      if (C.IsNull())
+      {
+        return Standard_False;
+      }
     }
     C = new Geom_TrimmedCurve(C,f,l);
     if ( !L.IsIdentity()) C->Transform(L);
@@ -2515,7 +2519,7 @@ static void MakeFace(const Handle(Geom_Surface)& S,
   
   // compute vertices
   BRep_Builder B;
-  Standard_Real tol = Precision::Confusion();
+  constexpr Standard_Real tol = Precision::Confusion();
   
   TopoDS_Vertex V00,V10,V11,V01;
   
@@ -3519,9 +3523,8 @@ void BRepOffset_Tool::ExtentFace (const TopoDS_Face&            F,
       if (ToBuild.IsBound(E)) {
 	TopTools_ListOfShape LOE;
 	LOE.Append(E);
-	BRepOffset_Tool::TryProject (TopoDS::Face(ToBuild(E)),
-				     EF,LOE,LInt2,LInt1,Side,TolConf);
-	if (!LInt1.IsEmpty()) 
+	if (BRepOffset_Tool::TryProject(TopoDS::Face(ToBuild(E)), EF, LOE, LInt2, LInt1, Side, TolConf)
+        && !LInt1.IsEmpty())
 	  ToBuild.UnBind(E);
       }
     }
@@ -3713,7 +3716,7 @@ void BRepOffset_Tool::ExtentFace (const TopoDS_Face&            F,
     TopoDS_Vertex      NV1,NV2;
     TopAbs_Orientation Or;
     Standard_Real      U1,U2;
-    Standard_Real      eps = Precision::Confusion();
+    constexpr Standard_Real eps = Precision::Confusion();
 
 #ifdef OCCT_DEBUG
     TopLoc_Location    L;
@@ -3963,10 +3966,10 @@ TopoDS_Shape BRepOffset_Tool::Deboucle3D(const TopoDS_Shape& S,
 //=======================================================================
 
 static Standard_Boolean IsInOut (BRepTopAdaptor_FClass2d& FC,
-				 Geom2dAdaptor_Curve      AC,
+				 const Geom2dAdaptor_Curve&      AC,
 				 const TopAbs_State&      S )
 {
- Standard_Real Def = 100*Precision::Confusion();
+ constexpr Standard_Real Def = 100*Precision::Confusion();
  GCPnts_QuasiUniformDeflection QU(AC,Def);
  
  for (Standard_Integer i = 1; i <= QU.NbPoints(); i++) {
@@ -4016,7 +4019,7 @@ void BRepOffset_Tool::CorrectOrientation(const TopoDS_Shape&        SI,
 //	BRepTopAdaptor_FClass2d FC (TopoDS::Face(FI.Oriented(TopAbs_FORWARD)),
 //				    Precision::Confusion());
 	for (itE.Initialize(LOE); itE.More(); itE.Next()) {
-	  TopoDS_Shape&   OE   = itE.Value();
+	  TopoDS_Shape&   OE   = itE.ChangeValue();
 	  if (NewEdges.Contains(OE)) {
 	    Handle(Geom2d_Curve) CO2d = 
 	      BRep_Tool::CurveOnSurface(TopoDS::Edge(OE),OF,f,l);

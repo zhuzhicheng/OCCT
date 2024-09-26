@@ -19,6 +19,8 @@
 #include <Message_ProgressScope.hxx>
 #include <MoniTool_DataMapOfShapeTransient.hxx>
 #include <StdFail_NotDone.hxx>
+#include <StepData_Factors.hxx>
+#include <StepData_StepModel.hxx>
 #include <StepShape_ClosedShell.hxx>
 #include <StepShape_FacetedBrepAndBrepWithVoids.hxx>
 #include <StepShape_HArray1OfOrientedClosedShell.hxx>
@@ -47,6 +49,7 @@
 TopoDSToStep_MakeFacetedBrepAndBrepWithVoids::
   TopoDSToStep_MakeFacetedBrepAndBrepWithVoids(const TopoDS_Solid& aSolid,
                                                const Handle(Transfer_FinderProcess)& FP,
+                                               const StepData_Factors& theLocalFactors,
                                                const Message_ProgressRange& theProgress)
 {
   done = Standard_False;
@@ -63,8 +66,9 @@ TopoDSToStep_MakeFacetedBrepAndBrepWithVoids::
 
   aOutShell = BRepClass3d::OuterShell(aSolid);
 
+  Handle(StepData_StepModel) aStepModel = Handle(StepData_StepModel)::DownCast(FP->Model());
   TopoDSToStep_Builder StepB;
-  TopoDSToStep_Tool    aTool;
+  TopoDSToStep_Tool    aTool(aStepModel);
 
   if (!aOutShell.IsNull()) {
     Standard_Integer nbshapes = 0;
@@ -79,8 +83,8 @@ TopoDSToStep_MakeFacetedBrepAndBrepWithVoids::
         TopoDS_Shell CurrentShell = TopoDS::Shell(It.Value());
         if (It.Value().Closed()) {
 
-          aTool.Init(aMap, Standard_False);
-          StepB.Init(CurrentShell, aTool, FP, Standard_False, aRange);
+          aTool.Init(aMap, Standard_False, aStepModel->InternalParameters.WriteSurfaceCurMode);
+          StepB.Init(CurrentShell, aTool, FP, Standard_False, theLocalFactors, aRange);
           TopoDSToStep::AddResult(FP, aTool);
 
           if (StepB.IsDone()) {

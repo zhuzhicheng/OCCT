@@ -74,6 +74,7 @@
 #include <BRepTools_ReShape.hxx>
 #include <TopTools_DataMapOfShapeReal.hxx>
 #include <TopoDS_LockedShape.hxx>
+#include <Standard_HashUtils.hxx>
 
 #include <algorithm>
 
@@ -288,8 +289,8 @@ static Standard_Integer evaluateMaxSegment(const Standard_Integer aMaxSegment,
 {
   if (aMaxSegment != 0) return aMaxSegment;
 
-  Handle(Adaptor3d_Surface) aSurf   = aCurveOnSurface.GetSurface();
-  Handle(Adaptor2d_Curve2d) aCurv2d = aCurveOnSurface.GetCurve();
+  const Handle(Adaptor3d_Surface)& aSurf   = aCurveOnSurface.GetSurface();
+  const Handle(Adaptor2d_Curve2d)& aCurv2d = aCurveOnSurface.GetCurve();
 
   Standard_Real aNbSKnots = 0, aNbC2dKnots = 0;
 
@@ -802,7 +803,7 @@ static void GetEdgeTol(const TopoDS_Edge& theEdge,
     }
     if(temp > d2) d2 = temp;
   }
-  d2 = 1.5*sqrt(d2);
+  d2 = 1.05*sqrt(d2);
   theEdTol = d2;
 }
 
@@ -884,10 +885,6 @@ static void UpdShTol(const TopTools_DataMapOfShapeReal& theShToTol,
     case TopAbs_VERTEX: 
       {
         const Handle(BRep_TVertex)& aTV = *((Handle(BRep_TVertex)*)&aNsh.TShape());
-        //
-        if(aTV->Locked())
-          throw TopoDS_LockedShape("BRep_Builder::UpdateVertex");
-        //
         if (theVForceUpdate)
           aTV->Tolerance(aTol);
         else
@@ -965,6 +962,9 @@ static void InternalSameParameter(const TopoDS_Shape& theSh, BRepTools_ReShape& 
     TopExp_Explorer ex2;
     for(ex2.Init(curface,TopAbs_EDGE); ex2.More(); ex2.Next()){
       const TopoDS_Edge& E = TopoDS::Edge(ex2.Current());
+      if (BRep_Tool::Degenerated(E))
+        continue;
+
       TopoDS_Shape aNe = theReshaper.Value(E);
       Standard_Real aNewEtol = -1;
       GetEdgeTol(TopoDS::Edge(aNe), curface, aNewEtol);
@@ -1189,7 +1189,7 @@ static void GetCurve3d(const TopoDS_Edge& theEdge, Handle(Geom_Curve)& theC3d, S
 //function : UpdateVTol
 //purpose  : 
 //=======================================================================
-void UpdateVTol(const TopoDS_Vertex theV1, const TopoDS_Vertex& theV2, Standard_Real theTol)
+void UpdateVTol(const TopoDS_Vertex& theV1, const TopoDS_Vertex& theV2, Standard_Real theTol)
 {
   BRep_Builder aB;
   if (!theV1.IsNull())
@@ -1709,8 +1709,8 @@ static void InternalUpdateTolerances(const TopoDS_Shape& theOldShape,
   for (iCur=1; iCur<=nbV; iCur++) {
     tol=0;
     const TopoDS_Vertex& V = TopoDS::Vertex(parents.FindKey(iCur));
-    Bnd_Box box;
-    box.Add(BRep_Tool::Pnt(V));
+    gp_Pnt aPV = BRep_Tool::Pnt(V);
+    Standard_Real aMaxDist = 0.;
     gp_Pnt p3d;
     for (lConx.Initialize(parents(iCur)); lConx.More(); lConx.Next()) {
       const TopoDS_Edge& E = TopoDS::Edge(lConx.Value());
@@ -1732,8 +1732,10 @@ static void InternalUpdateTolerances(const TopoDS_Shape& theOldShape,
           if (!C.IsNull()) { // edge non degenerated
             p3d = C->Value(par);
             p3d.Transform(L.Transformation());
-            box.Add(p3d);
-          }
+            Standard_Real aDist = p3d.SquareDistance(aPV);
+            if (aDist > aMaxDist)
+              aMaxDist = aDist;
+           }
         }
         else if (cr->IsCurveOnSurface()) {
           const Handle(Geom_Surface)& Su = cr->Surface();
@@ -1745,21 +1747,22 @@ static void InternalUpdateTolerances(const TopoDS_Shape& theOldShape,
           gp_Pnt2d p2d = PC->Value(par);
           p3d = Su->Value(p2d.X(),p2d.Y());
           p3d.Transform(L.Transformation());
-          box.Add(p3d);
+          Standard_Real aDist = p3d.SquareDistance(aPV);
+          if (aDist > aMaxDist)
+            aMaxDist = aDist;
           if (!PC2.IsNull()) {
             p2d = PC2->Value(par);
             p3d = Su->Value(p2d.X(),p2d.Y());
             p3d.Transform(L.Transformation());
-            box.Add(p3d);
+            aDist = p3d.SquareDistance(aPV);
+            if (aDist > aMaxDist)
+              aMaxDist = aDist;
           }
         }
         itcr.Next();
       }
     }
-    Standard_Real aXmin, aYmin, aZmin, aXmax, aYmax, aZmax;
-    box.Get(aXmin, aYmin, aZmin, aXmax, aYmax, aZmax);
-    aXmax -= aXmin; aYmax -= aYmin; aZmax -= aZmin;
-    tol = Max(tol,sqrt(aXmax*aXmax+aYmax*aYmax+aZmax*aZmax));
+    tol = Max(tol, sqrt(aMaxDist));
     tol += 2.*Epsilon(tol);
     //
     Standard_Real aVTol = BRep_Tool::Tolerance(V);
@@ -2233,7 +2236,6 @@ static void EncodeRegularity(const TopoDS_Shape&        theShape,
     TopTools_ListIteratorOfListOfShape It;
     TopExp_Explorer Ex;
     TopoDS_Face F1,F2;
-    Standard_Boolean found;
     for (Standard_Integer i = 1; i <= M.Extent(); i++){
       TopoDS_Edge E = TopoDS::Edge(M.FindKey(i));
       if (!theEdgesToEncode.IsEmpty())
@@ -2245,7 +2247,7 @@ static void EncodeRegularity(const TopoDS_Shape&        theShape,
           continue;
       }
 
-      found = Standard_False;                                     
+      Standard_Boolean found = Standard_False;
       F1.Nullify();
       for (It.Initialize(M.FindFromIndex(i)); It.More() && !found; It.Next()){
         if (F1.IsNull()) { F1 = TopoDS::Face(It.Value()); }
@@ -2509,12 +2511,6 @@ namespace
       Node[1] = theNode2;
     }
 
-    //! Computes a hash code for the this link
-    Standard_Integer HashCode (const Standard_Integer theUpperBound) const
-    {
-      return ::HashCode (Node[0] + Node[1], theUpperBound);
-    }
-
     //! Returns true if this link has the same nodes as the other.
     Standard_Boolean IsEqual (const Link& theOther) const
     {
@@ -2528,12 +2524,23 @@ namespace
       return IsEqual (theOther);
     }
   };
+}
 
-  //! Computes a hash code for the given link
-  inline Standard_Integer HashCode (const Link& theLink, const Standard_Integer theUpperBound)
+namespace std
+{
+  template <>
+  struct hash<Link>
   {
-    return theLink.HashCode (theUpperBound);
-  }
+    size_t operator()(const Link& theLink) const noexcept
+    {
+      int aCombination[2]{ theLink.Node[0], theLink.Node[1] };
+      if (aCombination[0] > aCombination[1])
+      {
+        std::swap(aCombination[0], aCombination[1]);
+      }
+      return opencascade::hashBytes(aCombination, sizeof(aCombination));
+    }
+  };
 }
 
 void BRepLib::UpdateDeflection (const TopoDS_Shape& theShape)
@@ -2821,7 +2828,7 @@ void BRepLib::BoundingVertex(const NCollection_List<TopoDS_Shape>& theLV,
     // of addition, thus sort the coordinates for stable result
     Standard_Integer i;
     NCollection_Array1<gp_Pnt> aPoints(0, aNb-1);
-    NCollection_List<TopoDS_Edge>::Iterator aIt(theLV);
+    NCollection_List<TopoDS_Shape>::Iterator aIt(theLV);
     for (i = 0; aIt.More(); aIt.Next(), ++i) {
       const TopoDS_Vertex& aVi = *((TopoDS_Vertex*)(&aIt.Value()));
       gp_Pnt aPi = BRep_Tool::Pnt(aVi);
@@ -2933,7 +2940,7 @@ void BRepLib::ExtendFace(const TopoDS_Face& theF,
 
     // Check if the periodic surface should become closed.
     // In this case, use the basis surface with basis bounds.
-    const Standard_Real anEps = Precision::PConfusion();
+    constexpr Standard_Real anEps = Precision::PConfusion();
     if (isUPeriodic && Abs(aFUMax - aFUMin - anUPeriod) < anEps)
     {
       aFUMin = aSUMin;

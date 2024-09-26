@@ -14,6 +14,7 @@
 #include <IGESCAFControl_ConfigurationNode.hxx>
 
 #include <DE_ConfigurationContext.hxx>
+#include <DE_PluginHolder.hxx>
 #include <IGESCAFControl_Provider.hxx>
 #include <NCollection_Buffer.hxx>
 
@@ -26,6 +27,9 @@ namespace
     static const TCollection_AsciiString aScope = "provider";
     return aScope;
   }
+
+  // Wrapper to auto-load DE component
+  DE_PluginHolder<IGESCAFControl_ConfigurationNode> THE_OCCT_IGES_COMPONENT_PLUGIN;
 }
 
 //=======================================================================
@@ -34,9 +38,7 @@ namespace
 //=======================================================================
 IGESCAFControl_ConfigurationNode::IGESCAFControl_ConfigurationNode() :
   DE_ConfigurationNode()
-{
-  UpdateLoad();
-}
+{}
 
 //=======================================================================
 // function : IGESCAFControl_ConfigurationNode
@@ -46,7 +48,6 @@ IGESCAFControl_ConfigurationNode::IGESCAFControl_ConfigurationNode(const Handle(
   :DE_ConfigurationNode(theNode)
 {
   InternalParameters = theNode->InternalParameters;
-  UpdateLoad();
 }
 
 //=======================================================================

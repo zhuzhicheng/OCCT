@@ -111,6 +111,12 @@ public:
   Standard_EXPORT virtual Standard_Boolean BufferDump (Image_PixMap& theImage,
                                                        const Graphic3d_BufferType& theBufferType) Standard_OVERRIDE;
 
+  //! Dumps the graphical contents of a shadowmap framebuffer into an image.
+  //! @param theImage the image to store the shadow map.
+  //! @param theLightName [in] name of the light used to generate the shadow map.
+  Standard_EXPORT virtual Standard_Boolean ShadowMapDump (Image_PixMap& theImage,
+	                                                      const TCollection_AsciiString& theLightName) Standard_OVERRIDE;
+
   //! Marks BVH tree and the set of BVH primitives of correspondent priority list with id theLayerId as outdated.
   Standard_EXPORT virtual void InvalidateBVHData (const Graphic3d_ZLayerId theLayerId) Standard_OVERRIDE;
 
@@ -352,11 +358,11 @@ protected: //! @name low-level redrawing sub-routines
 
 protected: //! @name Rendering of GL graphics (with prepared drawing buffer).
 
-  //! Renders the graphical contents of the view into the preprepared shadowmap framebuffer.
+  //! Renders the graphical contents of the view into the prepared shadowmap framebuffer.
   //! @param theShadowMap [in] the framebuffer for rendering shadowmap.
   Standard_EXPORT virtual void renderShadowMap (const Handle(OpenGl_ShadowMap)& theShadowMap);
 
-  //! Renders the graphical contents of the view into the preprepared window or framebuffer.
+  //! Renders the graphical contents of the view into the prepared window or framebuffer.
   //! @param theProjection [in] the projection that should be used for rendering.
   //! @param theReadDrawFbo [in] the framebuffer for rendering graphics.
   //! @param theOitAccumFbo [in] the framebuffer for accumulating color and coverage for OIT process.

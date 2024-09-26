@@ -230,9 +230,9 @@ Standard_Boolean GeomConvert_SurfToAnaSurf::GetCylByLS(const Handle(TColgp_HArra
   Standard_Real aRelDev = 0.2; //Customer can set parameters of sample surface
                                // with relative precision about aRelDev.
                                // For example, if radius of sample surface is R,
-                               // it means, that "exact" vaue is in interav 
-                               //[R - aRelDev*R, R + aRelDev*R]. This intrrval is set
-                               // for R as boundary values for dptimization algo.
+                               // it means, that "exact" value is in interav 
+                               //[R - aRelDev*R, R + aRelDev*R]. This interval is set
+                               // for R as boundary values for optimization algo.
 
   aStartPoint(1) = thePos.Location().X();
   aStartPoint(2) = thePos.Location().Y();
@@ -249,7 +249,7 @@ Standard_Boolean GeomConvert_SurfToAnaSurf::GetCylByLS(const Handle(TColgp_HArra
   aLBnd(4) = aStartPoint(4) + aDR;
 
   //
-  Standard_Real aTol = Precision::Confusion();
+  constexpr Standard_Real aTol = Precision::Confusion();
   math_MultipleVarFunction* aPFunc;
   GeomConvert_FuncCylinderLSDist aFuncCyl(thePoints, thePos.Direction());
   aPFunc = (math_MultipleVarFunction*)&aFuncCyl;
@@ -279,7 +279,7 @@ Standard_Boolean GeomConvert_SurfToAnaSurf::GetCylByLS(const Handle(TColgp_HArra
     aDirMatrix(i, i) = 1.0;
 
   //Set search direction for location to be perpendicular to axis to avoid
-  //seaching along axis
+  //searching along axis
   const gp_Dir aDir = thePos.Direction();
   gp_Pln aPln(thePos.Location(), aDir);
   gp_Dir aUDir = aPln.Position().XDirection();
@@ -558,7 +558,7 @@ Handle(Geom_Surface) GeomConvert_SurfToAnaSurf::TryTorusSphere(const Handle(Geom
 
 Standard_Real GeomConvert_SurfToAnaSurf::ComputeGap(const Handle(Geom_Surface)& theSurf,
   const Standard_Real theU1, const Standard_Real theU2, const Standard_Real theV1, const Standard_Real theV2,
-  const Handle(Geom_Surface) theNewSurf, const Standard_Real theTol)
+  const Handle(Geom_Surface)& theNewSurf, const Standard_Real theTol)
 {
   GeomAdaptor_Surface aGAS(theNewSurf);
   GeomAbs_SurfaceType aSType = aGAS.GetType();
@@ -767,7 +767,7 @@ Handle(Geom_Surface) GeomConvert_SurfToAnaSurf::ConvertToAnalytical(const Standa
   Standard_Real U1, U2, V1, V2;
   mySurf->Bounds(U1, U2, V1, V2);
   Standard_Boolean aDoSegment = Standard_False;
-  Standard_Real aTolBnd = Precision::PConfusion();
+  constexpr Standard_Real aTolBnd = Precision::PConfusion();
   Standard_Integer isurf = 0;
   if (Umin < U1 || Umax > U2 || Vmin < V1 || Vmax > V2)
   {

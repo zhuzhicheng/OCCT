@@ -14,6 +14,7 @@
 #include <RWObj_ConfigurationNode.hxx>
 
 #include <DE_ConfigurationContext.hxx>
+#include <DE_PluginHolder.hxx>
 #include <RWObj_Provider.hxx>
 
 IMPLEMENT_STANDARD_RTTIEXT(RWObj_ConfigurationNode, DE_ConfigurationNode)
@@ -25,6 +26,9 @@ namespace
     static const TCollection_AsciiString aScope = "provider";
     return aScope;
   }
+
+  // Wrapper to auto-load DE component
+  DE_PluginHolder<RWObj_ConfigurationNode> THE_OCCT_OBJ_COMPONENT_PLUGIN;
 }
 
 //=======================================================================
@@ -33,9 +37,7 @@ namespace
 //=======================================================================
 RWObj_ConfigurationNode::RWObj_ConfigurationNode() :
   DE_ConfigurationNode()
-{
-  UpdateLoad();
-}
+{}
 
 //=======================================================================
 // function : RWObj_ConfigurationNode
@@ -45,7 +47,6 @@ RWObj_ConfigurationNode::RWObj_ConfigurationNode(const Handle(RWObj_Configuratio
   :DE_ConfigurationNode(theNode)
 {
   InternalParameters = theNode->InternalParameters;
-  UpdateLoad();
 }
 
 //=======================================================================

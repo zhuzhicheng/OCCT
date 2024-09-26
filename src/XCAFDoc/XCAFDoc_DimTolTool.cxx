@@ -503,7 +503,7 @@ TDF_Label XCAFDoc_DimTolTool::SetDimTol(const TDF_Label& L,
 
 Standard_Boolean XCAFDoc_DimTolTool::GetRefShapeLabel(const TDF_Label& theL,
                                                       TDF_LabelSequence& theShapeLFirst,
-                                                      TDF_LabelSequence& theShapeLSecond) const
+                                                      TDF_LabelSequence& theShapeLSecond)
 {
   theShapeLFirst.Clear();
   theShapeLSecond.Clear();
@@ -855,7 +855,7 @@ Standard_Boolean XCAFDoc_DimTolTool::GetDatum(const TDF_Label& theDatumL,
 //=======================================================================
 
 Standard_Boolean XCAFDoc_DimTolTool::GetDatumOfTolerLabels(const TDF_Label& theDimTolL,
-                                                         TDF_LabelSequence& theDatums) const
+                                                         TDF_LabelSequence& theDatums)
 {
   Handle(XCAFDoc_GraphNode) aNode;
   if( !theDimTolL.FindAttribute(XCAFDoc::DatumTolRefGUID(),aNode) )
@@ -874,7 +874,7 @@ Standard_Boolean XCAFDoc_DimTolTool::GetDatumOfTolerLabels(const TDF_Label& theD
 //=======================================================================
 
 Standard_Boolean XCAFDoc_DimTolTool::GetDatumWithObjectOfTolerLabels(const TDF_Label& theDimTolL,
-                                                                     TDF_LabelSequence& theDatums) const
+                                                                     TDF_LabelSequence& theDatums)
 {
   Handle(XCAFDoc_GraphNode) aNode;
   if( !theDimTolL.FindAttribute(XCAFDoc::DatumTolRefGUID(),aNode) )
@@ -965,7 +965,7 @@ const Standard_GUID& XCAFDoc_DimTolTool::ID() const
 //purpose  : 
 //=======================================================================
 void XCAFDoc_DimTolTool::GetGDTPresentations(NCollection_IndexedDataMap<TDF_Label, 
-  TopoDS_Shape, TDF_LabelMapHasher>& theGDTLabelToShape) const
+  TopoDS_Shape>& theGDTLabelToShape) const
 {
   TDF_LabelSequence aGDTs;
   GetDimensionLabels(aGDTs);
@@ -1017,7 +1017,7 @@ void XCAFDoc_DimTolTool::GetGDTPresentations(NCollection_IndexedDataMap<TDF_Labe
 //function : SetGDTPresentations
 //purpose  : 
 //=======================================================================
-void XCAFDoc_DimTolTool::SetGDTPresentations(NCollection_IndexedDataMap<TDF_Label, TopoDS_Shape, TDF_LabelMapHasher>& theGDTLabelToPrs)
+void XCAFDoc_DimTolTool::SetGDTPresentations(NCollection_IndexedDataMap<TDF_Label, TopoDS_Shape>& theGDTLabelToPrs)
 { 
   for (Standard_Integer i = 1; i <= theGDTLabelToPrs.Extent(); i++)
   {    

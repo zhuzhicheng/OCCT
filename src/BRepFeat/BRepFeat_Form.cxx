@@ -489,7 +489,7 @@ static void Descendants(const TopoDS_Shape&,
 #endif
     theGlue.Perform();
     if (theGlue.IsDone()) {
-      TopoDS_Shape shshs = theGlue.ResultingShape();
+      const TopoDS_Shape& shshs = theGlue.ResultingShape();
 //      if (BRepOffsetAPI::IsTopologicallyValid(shshs)) {
       if (BRepAlgo::IsValid(shshs)) {
         UpdateDescendants(theGlue);
@@ -755,7 +755,7 @@ static void Descendants(const TopoDS_Shape&,
 // intersects Shapes From and Until
 //       case of several intersections (keep PartsOfTool according to the selection)  
 //       position of the face of intersection in PartsOfTool (before or after)
-      Standard_Real delta = Precision::Confusion();
+      constexpr Standard_Real delta = Precision::Confusion();
 
       if (myPerfSelection != BRepFeat_NoSelection) {
 // modif of the test for cts21181 : (prbmax2 and prnmin2) -> (prbmin1 and prbmax1)

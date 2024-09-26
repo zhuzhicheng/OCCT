@@ -44,10 +44,12 @@ public:
   
   Standard_EXPORT TopoDSToStep_MakeManifoldSolidBrep(const TopoDS_Shell& S,
                                                      const Handle(Transfer_FinderProcess)& FP,
+                                                     const StepData_Factors& theLocalFactors = StepData_Factors(),
                                                      const Message_ProgressRange& theProgress = Message_ProgressRange());
   
   Standard_EXPORT TopoDSToStep_MakeManifoldSolidBrep(const TopoDS_Solid& S,
                                                      const Handle(Transfer_FinderProcess)& FP,
+                                                     const StepData_Factors& theLocalFactors = StepData_Factors(),
                                                      const Message_ProgressRange& theProgress = Message_ProgressRange());
   
   Standard_EXPORT const Handle(StepShape_ManifoldSolidBrep)& Value() const;

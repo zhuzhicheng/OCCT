@@ -1973,7 +1973,7 @@ static Standard_Boolean RemoveLoop (TopoDS_Edge &E, const TopoDS_Face &face,
   Seq2d->Append((t1+t2)/2);
   Handle(TColStd_HSequenceOfReal) Seq3d = SFTP.Perform(Seq2d,Standard_False);
   
-  Standard_Real dist1 = pcurPnt.Distance(crv->Value(Seq3d->Value(1)));// correting Seq3d already project 
+  Standard_Real dist1 = pcurPnt.Distance(crv->Value(Seq3d->Value(1)));// correcting Seq3d already project 
   Standard_Real dist2 = pcurPnt.Distance(crv->Value(Seq3d->Value(2)));
   Standard_Real dist3 = pcurPnt.Distance(crv->Value(Seq3d->Value(3)));
   Standard_Real ftrim,ltrim;
@@ -2105,7 +2105,7 @@ static Standard_Boolean RemoveLoop (TopoDS_Edge &E, const TopoDS_Face &face,
   Seq2d->Append((t1+t2)/2);
   Handle (TColStd_HSequenceOfReal) Seq3d = SFTP.Perform(Seq2d,Standard_False);
   
-  Standard_Real dist1 = pcurPnt.Distance(crv->Value(Seq3d->Value(1)));// correting Seq3d already project 
+  Standard_Real dist1 = pcurPnt.Distance(crv->Value(Seq3d->Value(1)));// correcting Seq3d already project 
   Standard_Real dist2 = pcurPnt.Distance(crv->Value(Seq3d->Value(2)));
   Standard_Real dist3 = pcurPnt.Distance(crv->Value(Seq3d->Value(3)));
   Standard_Real ftrim,ltrim;
@@ -3306,8 +3306,8 @@ static void CopyReversePcurves(const TopoDS_Edge& toedge,
 			       const TopoDS_Edge& fromedge,
 			       const Standard_Boolean reverse)
 {
-  TopLoc_Location fromLoc = fromedge.Location();
-  TopLoc_Location toLoc = toedge.Location();
+  const TopLoc_Location& fromLoc = fromedge.Location();
+  const TopLoc_Location& toLoc = toedge.Location();
   for (BRep_ListIteratorOfListOfCurveRepresentation fromitcr
        ((*((Handle(BRep_TEdge)*)&fromedge.TShape()))->ChangeCurves()); fromitcr.More(); fromitcr.Next()) {
     Handle(BRep_GCurve) fromGC = Handle(BRep_GCurve)::DownCast(fromitcr.Value());

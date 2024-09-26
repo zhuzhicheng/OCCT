@@ -18,6 +18,8 @@
 #include <DBRep.hxx>
 #include <DDocStd.hxx>
 #include <Draw.hxx>
+#include <gp_Ax1.hxx>
+#include <gp_Pnt.hxx>
 #include <gp_Trsf.hxx>
 #include <Message.hxx>
 #include <NCollection_DataMap.hxx>
@@ -507,40 +509,37 @@ static Standard_Integer getFreeShapes (Draw_Interpretor& di, Standard_Integer ar
   return 0;
 }
 
-static Standard_Integer getOneShape (Draw_Interpretor& di, Standard_Integer argc, const char** argv)
+//=======================================================================
+//function : getOneShape
+//purpose  :
+//=======================================================================
+static Standard_Integer getOneShape (Draw_Interpretor& theDI, 
+                                     Standard_Integer theNbArgs, 
+                                     const char** theArgVec)
 {
-  if (argc!=3) {
-    di<<"Use: "<<argv[0]<<" shape DocName \n";
+  if ( theNbArgs !=3 )
+  {
+    theDI <<"Use: "<< theArgVec[0]<<" shape DocName \n";
     return 1;
   }
   
-  Handle(TDocStd_Document) Doc;   
-  DDocStd::GetDocument(argv[2], Doc);
-  if ( Doc.IsNull() ) { di << argv[2] << " is not a document\n"; return 1; }
+  Handle(TDocStd_Document) aDoc;   
+  DDocStd::GetDocument(theArgVec[2], aDoc);
+  if ( aDoc.IsNull() )
+  { 
+    theDI << "Error: " << theArgVec[2] << " is not a document\n";
+    return 1;
+  }
 
-  TDF_LabelSequence Labels;
-  Handle(XCAFDoc_ShapeTool) STool = XCAFDoc_DocumentTool::ShapeTool(Doc->Main());
-  STool->GetFreeShapes(Labels);
-  if ( Labels.Length() <=0 ) {
-    di << "Document " << argv[2] << " contain no shapes\n";
-    return 0;
+  Handle(XCAFDoc_ShapeTool) aSTool = XCAFDoc_DocumentTool::ShapeTool(aDoc->Main());
+  TopoDS_Shape aShape = aSTool->GetOneShape();
+  if (aShape.IsNull())
+  {
+    theDI << "Error: Document " << theArgVec[2] << " contain no shapes\n";
+    return 1;
   }
-  
-  if ( Labels.Length() ==1 ) {
-    TopoDS_Shape S = STool->GetShape ( Labels.Value(1) );
-    DBRep::Set ( argv[1], S );
-  }
-  else {
-    TopoDS_Compound C;
-    BRep_Builder B;
-    B.MakeCompound ( C );
-    for ( Standard_Integer i = 1; i<= Labels.Length(); i++) {
-      TopoDS_Shape S = STool->GetShape ( Labels.Value(i) );
-      B.Add ( C, S );
-    }
-    DBRep::Set ( argv[1], C );
-  }
-  di << argv[1];
+  DBRep::Set (theArgVec[1], aShape);
+  theDI << theArgVec[1];
   return 0;
 }
 
@@ -837,7 +836,7 @@ static Standard_Integer getAllStyledComponents (Draw_Interpretor& di, Standard_I
       BRep_Builder B;
       B.MakeCompound(aShape);
       for (Standard_Integer jj = 1; jj <= aShapes.Length(); jj++) {
-        TopoDS_Shape aCurShape = aShapes.Value(jj);
+        const TopoDS_Shape& aCurShape = aShapes.Value(jj);
         B.Add( aShape, aCurShape );
       }
       DBRep::Set ( argv[2], aShape );
@@ -1114,6 +1113,127 @@ static Standard_Integer XAutoNaming (Draw_Interpretor& theDI,
 }
 
 //=======================================================================
+// function : parseXYZ
+// purpose  : Converts three string arguments, to gp_XYZ with check
+//=======================================================================
+static Standard_Boolean parseXYZ (const char** theArgVec, gp_XYZ& thePnt)
+{
+  const TCollection_AsciiString aXYZ[3] = {theArgVec[0], theArgVec[1], theArgVec[2] };
+  if (!aXYZ[0].IsRealValue (Standard_True)
+  || !aXYZ[1].IsRealValue (Standard_True)
+  || !aXYZ[2].IsRealValue (Standard_True))
+  {
+    return Standard_False;
+  }
+
+  thePnt.SetCoord (aXYZ[0].RealValue(), aXYZ[1].RealValue(), aXYZ[2].RealValue());
+  return Standard_True;
+}
+
+//=======================================================================
+// function : setLocation
+// purpose  : Sets location to the shape at the label in XDE document
+//=======================================================================
+static Standard_Integer setLocation (Draw_Interpretor& , Standard_Integer theArgNb, const char** theArgVec)
+{
+  if (theArgNb < 4)
+  {
+    Message::SendFail() << "Error: not enough arguments, see help " << theArgVec[0] << " for details";
+    return 1;
+  }
+  // get and check the document
+  Handle(TDocStd_Document) aDoc;
+  DDocStd::GetDocument (theArgVec[1], aDoc);
+  if (aDoc.IsNull ())
+  {
+    Message::SendFail() << "Error: " << theArgVec[1] << " is not a document";
+    return 1;
+  }
+  // get and check the label
+  TDF_Label aShapeLabel;
+  TDF_Tool::Label (aDoc->GetData(), theArgVec[2], aShapeLabel);
+  if (aShapeLabel.IsNull ())
+  {
+    Message::SendFail() << "Error: no such Label: " << theArgVec[2];
+    return 1;
+  }
+  // get the transformation
+  gp_Trsf aTransformation;
+  for (Standard_Integer anArgIter = 3; anArgIter < theArgNb; ++anArgIter)
+  {
+    gp_Trsf aCurTransformation;
+    gp_XYZ aMoveXYZ, aRotPnt, aRotAxis, aScalePnt;
+    Standard_Real aRotAngle, aScale;
+    TCollection_AsciiString anArg = theArgVec[anArgIter];
+    anArg.LowerCase();
+
+    if (anArg == "-rotate" &&
+        anArgIter + 7 < theArgNb &&
+        parseXYZ (theArgVec + anArgIter + 1, aRotPnt) &&
+        parseXYZ (theArgVec + anArgIter + 4, aRotAxis) &&
+        Draw::ParseReal (theArgVec[anArgIter + 7], aRotAngle))
+    {
+      anArgIter += 7;
+      aCurTransformation.SetRotation (gp_Ax1 (gp_Pnt (aRotPnt), gp_Dir (aRotAxis)), aRotAngle * (M_PI / 180.0));
+    }
+    else if (anArg == "-move" &&
+             anArgIter + 3 < theArgNb &&
+             parseXYZ (theArgVec + anArgIter + 1, aMoveXYZ))
+    {
+      anArgIter += 3;
+      aCurTransformation.SetTranslation (aMoveXYZ);
+    }
+    // first check scale with base point
+    else if (anArg == "-scale" &&
+             anArgIter + 4 < theArgNb &&
+             parseXYZ (theArgVec + anArgIter + 1, aScalePnt) &&
+             Draw::ParseReal (theArgVec[anArgIter + 4], aScale))
+    {
+      anArgIter += 4;
+      aCurTransformation.SetScale (gp_Pnt (aScalePnt), aScale);
+    }
+    // second check for scale with scale factor only
+    else if (anArg == "-scale" &&
+             anArgIter + 1 < theArgNb &&
+             Draw::ParseReal (theArgVec[anArgIter + 1], aScale))
+    {
+      anArgIter += 1;
+      aCurTransformation.SetScaleFactor (aScale);
+    }
+    else
+    {
+      Message::SendFail() << "Syntax error: unknown options '" << anArg << "', or incorrect option parameters";
+      return 1;
+    }
+    aTransformation.PreMultiply (aCurTransformation);
+  }
+  TopLoc_Location aLoc(aTransformation);
+
+  // Create the ShapeTool and try to set location
+  Handle(XCAFDoc_ShapeTool) anAssembly = XCAFDoc_DocumentTool::ShapeTool (aDoc->Main());
+  TDF_Label aRefLabel;
+  if (anAssembly->SetLocation (aShapeLabel, aLoc, aRefLabel))
+  {
+    if (aShapeLabel == aRefLabel)
+    {
+      Message::SendInfo() << "New location was set";
+    }
+    else
+    {
+      TCollection_AsciiString aLabelStr;
+      TDF_Tool::Entry(aRefLabel, aLabelStr);
+      Message::SendInfo() << "Reference to the shape at label " << aLabelStr << " was created and location was set";
+    }
+  }
+  else
+  {
+    Message::SendFail() << "Error: an attempt to set the location to a shape to which there is a reference, or to not a shape at all";
+  }
+
+  return 0;
+}
+
+//=======================================================================
 //function : InitCommands
 //purpose  : 
 //=======================================================================
@@ -1222,6 +1342,20 @@ void XDEDRAW_Shapes::InitCommands(Draw_Interpretor& di)
 
   di.Add ("XSetInstanceSHUO","Doc shape \t: sets the SHUO structure for indicated component",
                    __FILE__, setStyledComponent, g);
+
+  di.Add ("XSetLocation", R"(
+Doc Label transformation [transformation ... ]
+Applies given complex transformation to the shape at Label from Document.
+The label may contain a reference to a shape, an assembly or simple shape.
+The assembly or simple shape should not be referred by any reference.
+Transformations:
+  '-move x y z'                     - move shape
+  '-rotate x y z dx dy dz angle'    - rotate shape
+  '-scale [x y z] factor'           - scale shape
+Transformations are applied from left to right.
+There can be more than one transformation of the same type.
+At least one transformation must be specified.
+)", __FILE__, setLocation, g);
   
   di.Add ("XUpdateAssemblies","Doc \t: updates assembly compounds",
                    __FILE__, updateAssemblies, g);

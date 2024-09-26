@@ -19,6 +19,8 @@
 #include <Interface_Static.hxx>
 #include <Message_ProgressScope.hxx>
 #include <StdFail_NotDone.hxx>
+#include <StepData_Factors.hxx>
+#include <StepData_StepModel.hxx>
 #include <StepShape_ClosedShell.hxx>
 #include <StepShape_FacetedBrep.hxx>
 #include <StepShape_TopologicalRepresentationItem.hxx>
@@ -40,17 +42,18 @@
 TopoDSToStep_MakeFacetedBrep::
   TopoDSToStep_MakeFacetedBrep(const TopoDS_Shell& aShell,
                                const Handle(Transfer_FinderProcess)& FP,
+                               const StepData_Factors& theLocalFactors,
                                const Message_ProgressRange& theProgress)
 {
   done = Standard_False;
   if (aShell.Closed()) {
     Handle(StepShape_TopologicalRepresentationItem) aItem;
     MoniTool_DataMapOfShapeTransient aMap;
+    Handle(StepData_StepModel) aStepModel = Handle(StepData_StepModel)::DownCast(FP->Model());
+    const Standard_Integer aWriteTessGeom = aStepModel->InternalParameters.WriteTessellated;
 
-    const Standard_Integer aWriteTessGeom = Interface_Static::IVal("write.step.tessellated");
-
-    TopoDSToStep_Tool    aTool(aMap, Standard_True);
-    TopoDSToStep_Builder StepB(aShell, aTool, FP, aWriteTessGeom, theProgress);
+    TopoDSToStep_Tool    aTool(aMap, Standard_True, aStepModel->InternalParameters.WriteSurfaceCurMode);
+    TopoDSToStep_Builder StepB(aShell, aTool, FP, aWriteTessGeom, theLocalFactors, theProgress);
     if (theProgress.UserBreak())
       return;
     TopoDSToStep::AddResult ( FP, aTool );
@@ -89,6 +92,7 @@ TopoDSToStep_MakeFacetedBrep::
 TopoDSToStep_MakeFacetedBrep::
   TopoDSToStep_MakeFacetedBrep(const TopoDS_Solid& aSolid,
                                const Handle(Transfer_FinderProcess)& FP,
+                               const StepData_Factors& theLocalFactors,
                                const Message_ProgressRange& theProgress)
 {
   done = Standard_False;
@@ -100,11 +104,11 @@ TopoDSToStep_MakeFacetedBrep::
     if (aOuterShell.Closed()) {
       Handle(StepShape_TopologicalRepresentationItem) aItem;
       MoniTool_DataMapOfShapeTransient aMap;
+      Handle(StepData_StepModel) aStepModel = Handle(StepData_StepModel)::DownCast(FP->Model());
+      const Standard_Integer aWriteTessGeom = aStepModel->InternalParameters.WriteTessellated;
 
-      const Standard_Integer aWriteTessGeom = Interface_Static::IVal("write.step.tessellated");
-
-      TopoDSToStep_Tool    aTool(aMap, Standard_True);
-      TopoDSToStep_Builder StepB(aOuterShell, aTool, FP, aWriteTessGeom, theProgress);
+      TopoDSToStep_Tool    aTool(aMap, Standard_True, aStepModel->InternalParameters.WriteSurfaceCurMode);
+      TopoDSToStep_Builder StepB(aOuterShell, aTool, FP, aWriteTessGeom, theLocalFactors, theProgress);
       if (theProgress.UserBreak())
         return;
       TopoDSToStep::AddResult ( FP, aTool );

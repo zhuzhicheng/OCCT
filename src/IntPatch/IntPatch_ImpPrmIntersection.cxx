@@ -1414,7 +1414,7 @@ void IntPatch_ImpPrmIntersection::Perform (const Handle(Adaptor3d_Surface)& Surf
         gp_Pnt ptpoly;
         IntSurf_PntOn2S p2s;
         Handle(IntSurf_LineOn2S) Thelin = new IntSurf_LineOn2S ();
-        Handle(Adaptor2d_Curve2d) arcsegm = thesegm.Curve();
+        const Handle(Adaptor2d_Curve2d)& arcsegm = thesegm.Curve();
         Standard_Integer nbsample = 100;
 
         if (!reversed) {
@@ -2665,9 +2665,9 @@ static Standard_Boolean DecomposeResult(const Handle(IntPatch_PointLine)& theLin
   }
   
   const Standard_Real aDeltaUmax = M_PI_2;
-  const Standard_Real aTOL3D = 1.e-10, 
-                      aTOL2D = Precision::PConfusion(),
-                      aTOL2DS = Precision::PConfusion();
+  constexpr Standard_Real aTOL3D = 1.e-10,
+                          aTOL2D = Precision::PConfusion(),
+                          aTOL2DS = Precision::PConfusion();
 
   const Handle(IntSurf_LineOn2S)& aSLine = theLine->Curve();
 
@@ -2801,7 +2801,7 @@ static Standard_Boolean DecomposeResult(const Handle(IntPatch_PointLine)& theLin
         ////
         const IntSurf_PntOn2S& aRefPt = aSSLine->Value(aBindex-1);
 
-        Standard_Real aCompareTol3D = Precision::Confusion();
+        constexpr Standard_Real aCompareTol3D = Precision::Confusion();
         Standard_Real aCompareTol2D = Precision::PConfusion();
 
         IntSurf_PntOn2S aNewPoint = aRefPt;

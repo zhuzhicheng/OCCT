@@ -85,9 +85,12 @@ public:
   //! @return new object with the same field values
   Standard_EXPORT virtual Handle(DE_ConfigurationNode) Copy() const = 0;
 
-  //! Update loading status. Checking for the license.
+  //! Update loading status. Checking for the ability to read and write.
+  //! @param[in] theToImport flag to updates for import. Standard_True-import, Standard_False-export
+  //! @param[in] theToKeep flag to save update result
   //! @return Standard_True, if node can be used
-  Standard_EXPORT virtual bool UpdateLoad();
+  Standard_EXPORT virtual bool UpdateLoad(const Standard_Boolean theToImport,
+                                          const Standard_Boolean theToKeep);
 
 public:
 
@@ -136,6 +139,15 @@ public:
   {
     myIsEnabled = theIsLoaded;
   }
+
+  //! Custom function to activate commercial DE component.
+  //! The input is special sequence of values that described in
+  //! specific component documentation. Order is important.
+  //! Each component can have own way of activation.
+  //!
+  //! The main goal - real-time loading plug-in activation.
+  //! OpenSource components don't need to have activation process.
+  Standard_EXPORT virtual void CustomActivation(const TColStd_ListOfAsciiString&) {};
 
 public:
 

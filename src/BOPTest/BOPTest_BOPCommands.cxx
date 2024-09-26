@@ -229,7 +229,6 @@ Standard_Integer bopsmt(Draw_Interpretor& di,
     return 0;
   }
   //
-  char buf[64];
   Standard_Boolean bRunParallel;
   Standard_Integer aNb;
   BOPAlgo_BOP aBOP;
@@ -237,8 +236,7 @@ Standard_Integer bopsmt(Draw_Interpretor& di,
   const TopTools_ListOfShape& aLC=pPF->Arguments();
   aNb=aLC.Extent();
   if (aNb!=2) {
-    Sprintf (buf, " wrong number of arguments %s\n", aNb);
-    di << buf;
+    di << " wrong number of arguments " << aNb << '\n';
     return 0;
   }
   // 
@@ -298,7 +296,6 @@ Standard_Integer bopsection(Draw_Interpretor& di,
     return 0;
   }
   //
-  char buf[64];
   Standard_Boolean bRunParallel;
   Standard_Integer aNb;
   BOPAlgo_Section aBOP;
@@ -306,8 +303,7 @@ Standard_Integer bopsection(Draw_Interpretor& di,
   const TopTools_ListOfShape& aLC=pPF->Arguments();
   aNb=aLC.Extent();
   if (aNb!=2) {
-    Sprintf (buf, " wrong number of arguments %s\n", aNb);
-    di << buf;
+    di << " wrong number of arguments " << aNb << '\n';
     return 0;
   }
   //
@@ -667,7 +663,7 @@ Standard_Integer bopcurves (Draw_Interpretor& di,
     for (Standard_Integer i=1; i<=aNbCurves; i++) {
       const IntTools_Curve& anIC=aSCs(i);
 
-      Handle (Geom_Curve)  aC3D = anIC.Curve();
+      const Handle (Geom_Curve)&  aC3D = anIC.Curve();
 
       if (aC3D.IsNull()) {
         di << " has Null 3d curve# " << i << "\n";
@@ -682,8 +678,8 @@ Standard_Integer bopcurves (Draw_Interpretor& di,
       DrawTrSurf::Set(nameC, aC3D);
       di << nameC << " ";
       //
-      Handle(Geom2d_Curve) aPC1 = anIC.FirstCurve2d();
-      Handle(Geom2d_Curve) aPC2 = anIC.SecondCurve2d();
+      const Handle(Geom2d_Curve)& aPC1 = anIC.FirstCurve2d();
+      const Handle(Geom2d_Curve)& aPC2 = anIC.SecondCurve2d();
       //
       if (!aPC1.IsNull() || !aPC2.IsNull()) {
         di << "(";

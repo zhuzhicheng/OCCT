@@ -171,7 +171,7 @@ Standard_Boolean BRepTools_TrsfModification::NewTriangulation
   // modify normals
   if (theTriangulation->HasNormals())
   {
-    for (Standard_Integer anInd = 1; anInd <= theTriangulation->NbTriangles(); ++anInd)
+    for (Standard_Integer anInd = 1; anInd <= theTriangulation->NbNodes(); ++anInd)
     {
       gp_Dir aNormal = theTriangulation->Normal(anInd);
       aNormal.Transform(aTrsf);
@@ -394,11 +394,11 @@ Standard_Boolean BRepTools_TrsfModification::NewCurve2d
     if(l - lc > Precision::PConfusion()) l = lc;
     if(Abs(l - f) < Precision::PConfusion())
     {
-      if(Abs(f - fc) < Precision::PConfusion())
+      if(Abs(f - fc) < Precision::PConfusion() && !Precision::IsInfinite(lc))
       {
         l = lc;
       }
-      else
+      else if (!Precision::IsInfinite(fc))
       {
         f = fc;
       }

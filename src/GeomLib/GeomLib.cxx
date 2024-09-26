@@ -1479,7 +1479,7 @@ void GeomLib::ExtendSurfByLength(Handle(Geom_BoundedSurface)& Surface,
     Handle(Geom_BSplineSurface)::DownCast (Surface);
   if (BS.IsNull()) {
     //BS = GeomConvert::SurfaceToBSplineSurface(Surface);
-    Standard_Real Tol = Precision::Confusion(); //1.e-4;
+    constexpr Standard_Real Tol = Precision::Confusion(); //1.e-4;
     GeomAbs_Shape UCont = GeomAbs_C1, VCont = GeomAbs_C1;
     Standard_Integer degU = 14, degV = 14;
     Standard_Integer nmax = 16;
@@ -1509,7 +1509,7 @@ void GeomLib::ExtendSurfByLength(Handle(Geom_BoundedSurface)& Surface,
 //                                   || ( !InU && BS->IsVRational() ) ;
   Standard_Boolean rational = (BS->IsURational() ||  BS->IsVRational());
   Standard_Boolean NullWeight;
-   Standard_Real EpsW = 10*Precision::PConfusion();
+  constexpr Standard_Real EpsW = 10*Precision::PConfusion();
   Standard_Integer gap = 3;
   if ( rational ) gap++;
 
@@ -1985,7 +1985,7 @@ void GeomLib::AxeOfInertia(const TColgp_Array1OfPnt& Points,
 //function : CanBeTreated
 //purpose  : indicates if the surface can be treated(if the conditions are
 //           filled) and need to be treated(if the surface hasn't been yet
-//           treated or if the surface is rationnal and non periodic)
+//           treated or if the surface is rational and non periodic)
 //=======================================================================
 
 static Standard_Boolean CanBeTreated(Handle(Geom_BSplineSurface)& BSurf)
@@ -2816,7 +2816,7 @@ static Standard_Boolean CompareWeightPoles(const TColgp_Array1OfPnt& thePoles1,
 //function : isIsoLine
 //purpose  :
 //=============================================================================
-Standard_Boolean GeomLib::isIsoLine (const Handle(Adaptor2d_Curve2d) theC2D,
+Standard_Boolean GeomLib::isIsoLine (const Handle(Adaptor2d_Curve2d)& theC2D,
                                      Standard_Boolean&                theIsU,
                                      Standard_Real&                   theParam,
                                      Standard_Boolean&                theIsForward)
@@ -2896,8 +2896,8 @@ Standard_Boolean GeomLib::isIsoLine (const Handle(Adaptor2d_Curve2d) theC2D,
 //function : buildC3dOnIsoLine
 //purpose  :
 //=============================================================================
-Handle(Geom_Curve) GeomLib::buildC3dOnIsoLine (const Handle(Adaptor2d_Curve2d) theC2D,
-                                               const Handle(Adaptor3d_Surface) theSurf,
+Handle(Geom_Curve) GeomLib::buildC3dOnIsoLine (const Handle(Adaptor2d_Curve2d)& theC2D,
+                                               const Handle(Adaptor3d_Surface)& theSurf,
                                                const Standard_Real              theFirst,
                                                const Standard_Real              theLast,
                                                const Standard_Real              theTolerance,

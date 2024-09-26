@@ -14,6 +14,7 @@
 #include <Vrml_ConfigurationNode.hxx>
 
 #include <DE_ConfigurationContext.hxx>
+#include <DE_PluginHolder.hxx>
 #include <Vrml_Provider.hxx>
 
 IMPLEMENT_STANDARD_RTTIEXT(Vrml_ConfigurationNode, DE_ConfigurationNode)
@@ -25,6 +26,9 @@ namespace
     static const TCollection_AsciiString aScope = "provider";
     return aScope;
   }
+
+  // Wrapper to auto-load DE component
+  DE_PluginHolder<Vrml_ConfigurationNode> THE_OCCT_VRML_COMPONENT_PLUGIN;
 }
 
 //=======================================================================
@@ -33,9 +37,7 @@ namespace
 //=======================================================================
 Vrml_ConfigurationNode::Vrml_ConfigurationNode() :
   DE_ConfigurationNode()
-{
-  UpdateLoad();
-}
+{}
 
 //=======================================================================
 // function : STEPCAFControl_ConfigurationNode
@@ -45,7 +47,6 @@ Vrml_ConfigurationNode::Vrml_ConfigurationNode(const Handle(Vrml_ConfigurationNo
   :DE_ConfigurationNode(theNode)
 {
   InternalParameters = theNode->InternalParameters;
-  UpdateLoad();
 }
 
 //=======================================================================

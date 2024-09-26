@@ -23,7 +23,6 @@
 #include <Standard_Type.hxx>
 #include <StepData.hxx>
 #include <StepData_Protocol.hxx>
-#include <StepData_GlobalFactors.hxx>
 #include <StepData_StepModel.hxx>
 #include <StepData_StepWriter.hxx>
 #include <TCollection_HAsciiString.hxx>
@@ -33,10 +32,10 @@
 IMPLEMENT_STANDARD_RTTIEXT(StepData_StepModel,Interface_InterfaceModel)
 
 // Entete de fichier : liste d entites
-StepData_StepModel::StepData_StepModel () :mySourceCodePage((Resource_FormatType)Interface_Static::IVal("read.step.codepage")),
+StepData_StepModel::StepData_StepModel () :
   myReadUnitIsInitialized(Standard_False), myWriteUnit (1.)
 {
-  switch (Interface_Static::IVal("write.step.unit"))
+  switch (InternalParameters.WriteUnit)
   {
     case  1: myWriteUnit = 25.4; break;
     case  2: myWriteUnit = 1.; break;
@@ -113,7 +112,7 @@ void StepData_StepModel::VerifyCheck(Handle(Interface_Check)& ach) const
   Interface_ShareTool sh(me,aHP);
   Handle(Interface_GeneralModule) module;  Standard_Integer CN;
   for (Interface_EntityIterator iter = Header(); iter.More(); iter.Next()) {
-    Handle(Standard_Transient) head = iter.Value();
+    const Handle(Standard_Transient)& head = iter.Value();
     if (!lib.Select(head,module,CN)) continue;
     module->CheckCase(CN,head,sh,ach);
   }
@@ -216,7 +215,7 @@ Handle(TCollection_HAsciiString) StepData_StepModel::StringLabel
 //=======================================================================
 void StepData_StepModel::SetLocalLengthUnit(const Standard_Real theUnit)
 {
-  StepData_GlobalFactors::Intance().SetCascadeUnit(theUnit);
+  myLocalLengthUnit = theUnit;
   myReadUnitIsInitialized = Standard_True;
 }
 
@@ -226,7 +225,7 @@ void StepData_StepModel::SetLocalLengthUnit(const Standard_Real theUnit)
 //=======================================================================
 Standard_Real StepData_StepModel::LocalLengthUnit() const
 {
-  return StepData_GlobalFactors::Intance().CascadeUnit();
+  return myLocalLengthUnit;
 }
 
 //=======================================================================

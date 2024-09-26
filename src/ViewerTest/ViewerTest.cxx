@@ -696,7 +696,7 @@ void ViewerTest::Clear()
   NCollection_Sequence<Handle(AIS_InteractiveObject)> aListRemoved;
   for (ViewerTest_DoubleMapIteratorOfDoubleMapOfInteractiveAndName anObjIter (GetMapOfAIS()); anObjIter.More(); anObjIter.Next())
   {
-    const Handle(AIS_InteractiveObject) anObj = anObjIter.Key1();
+    const Handle(AIS_InteractiveObject)& anObj = anObjIter.Key1();
     if (anObj->GetContext() != TheAISContext())
     {
       continue;
@@ -966,8 +966,11 @@ static Standard_Integer VDump (Draw_Interpretor& theDI,
   ViewerTest_StereoPair aStereoPair = ViewerTest_SP_Single;
   V3d_ImageDumpOptions  aParams;
   Handle(Graphic3d_Camera) aCustomCam;
-  aParams.BufferType    = Graphic3d_BT_RGB;
-  aParams.StereoOptions = V3d_SDO_MONO;
+  aParams.BufferType     = Graphic3d_BT_RGB;
+  aParams.StereoOptions  = V3d_SDO_MONO;
+  aParams.TargetZLayerId = Graphic3d_ZLayerId_BotOSD;
+  aParams.IsSingleLayer  = Standard_False;
+  aParams.LightName      = "";
   for (; anArgIter < theArgNb; ++anArgIter)
   {
     TCollection_AsciiString anArg (theArgVec[anArgIter]);
@@ -997,6 +1000,31 @@ static Standard_Integer VDump (Draw_Interpretor& theDI,
       else if (aBufArg == "depth")
       {
         aParams.BufferType = Graphic3d_BT_Depth;
+      }
+      else if (aBufArg == "shadowmap")
+      {
+        if (++anArgIter >= theArgNb)
+        {
+          Message::SendFail() << "Error: missing light name for shadowmap dump";
+          return 1;
+        }
+        aParams.BufferType = Graphic3d_BT_ShadowMap;
+        aParams.LightName = theArgVec[anArgIter];
+        Standard_Boolean isLightFound = Standard_False;
+        for (V3d_ListOfLightIterator aLightIter(aView->ActiveLightIterator()); aLightIter.More(); aLightIter.Next())
+        {
+          Handle(V3d_Light) aLight = aLightIter.Value();
+          if (aLight->Name() == aParams.LightName)
+          {
+            isLightFound = Standard_True;
+            break;
+          }
+        }
+        if (!isLightFound)
+        {
+          Message::SendFail() << "Error: couldn't find light '" << aParams.LightName << "'";
+          return 1;
+        }
       }
       else
       {
@@ -1105,6 +1133,11 @@ static Standard_Integer VDump (Draw_Interpretor& theDI,
     {
       aParams.BufferType = Graphic3d_BT_Depth;
     }
+    else if (anArg == "-shadowmap"
+          || anArg == "shadowmap")
+    {
+      aParams.BufferType = Graphic3d_BT_ShadowMap;
+    }
     else if (anArg == "-width"
           || anArg ==  "width"
           || anArg ==  "sizex")
@@ -1147,6 +1180,39 @@ static Standard_Integer VDump (Draw_Interpretor& theDI,
       }
       aParams.TileSize = Draw::Atoi (theArgVec[anArgIter]);
     }
+    else if (anArg == "-grouplayer")
+    {
+      if (++anArgIter >= theArgNb)
+      {
+        Message::SendFail() << "Error: integer value is expected right after 'grouplayer'";
+        return 1;
+      }
+      Graphic3d_ZLayerId aZLayer = (Graphic3d_ZLayerId)Draw::Atoi (theArgVec[anArgIter]);
+      if (!ViewerTest::ParseZLayer (theArgVec[anArgIter], aZLayer) ||
+          aZLayer == Graphic3d_ZLayerId_UNKNOWN)
+      {
+        Message::SendFail() << "Error: invalid layer " << aZLayer << ".";
+        return 1;
+      }
+      aParams.TargetZLayerId = aZLayer;
+    }
+    else if (anArg == "-singlelayer")
+    {
+      if (++anArgIter >= theArgNb)
+      {
+        Message::SendFail() << "Error: integer value is expected right after 'singlelayer'";
+        return 1;
+      }
+      Graphic3d_ZLayerId aZLayer = (Graphic3d_ZLayerId)Draw::Atoi (theArgVec[anArgIter]);
+      if (!ViewerTest::ParseZLayer (theArgVec[anArgIter], aZLayer) ||
+          aZLayer == Graphic3d_ZLayerId_UNKNOWN)
+      {
+        Message::SendFail() << "Error: invalid layer " << aZLayer << ".";
+        return 1;
+      }
+      aParams.TargetZLayerId = aZLayer;
+      aParams.IsSingleLayer = Standard_True;
+    }
     else
     {
       Message::SendFail() << "Error: unknown argument '" << theArgVec[anArgIter] << "'";
@@ -1174,6 +1240,7 @@ static Standard_Integer VDump (Draw_Interpretor& theDI,
     case Graphic3d_BT_Depth:               aFormat = Image_Format_GrayF; break;
     case Graphic3d_BT_RGB_RayTraceHdrLeft: aFormat = Image_Format_RGBF;  break;
     case Graphic3d_BT_Red:                 aFormat = Image_Format_Gray;  break;
+    case Graphic3d_BT_ShadowMap:           aFormat = Image_Format_GrayF;  break;
   }
 
   const bool wasImmUpdate = aView->SetImmediateUpdate (false);
@@ -1194,8 +1261,11 @@ static Standard_Integer VDump (Draw_Interpretor& theDI,
       else if (aPixMap.SizeX() != Standard_Size(aParams.Width)
             || aPixMap.SizeY() != Standard_Size(aParams.Height))
       {
-        theDI << "Fail: dumped dimensions "    << (Standard_Integer )aPixMap.SizeX() << "x" << (Standard_Integer )aPixMap.SizeY()
-              << " are lesser than requested " << aParams.Width << "x" << aParams.Height << "\n";
+        if (aParams.BufferType != Graphic3d_BT_ShadowMap)
+        {
+          theDI << "Fail: dumped dimensions " << (Standard_Integer)aPixMap.SizeX() << "x" << (Standard_Integer)aPixMap.SizeY()
+            << " are lesser than requested " << aParams.Width << "x" << aParams.Height << "\n";
+        }
       }
       break;
     }
@@ -3363,7 +3433,7 @@ static Standard_Integer VAspects (Draw_Interpretor& theDI,
     // redisplay all objects in context
     for (ViewTest_PrsIter aPrsIter (aNames); aPrsIter.More(); aPrsIter.Next())
     {
-      Handle(AIS_InteractiveObject)  aPrs = aPrsIter.Current();
+      const Handle(AIS_InteractiveObject)&  aPrs = aPrsIter.Current();
       if (!aPrs.IsNull())
       {
         aCtx->Redisplay (aPrs, Standard_False);
@@ -3612,7 +3682,7 @@ static int VDonly2 (Draw_Interpretor& ,
       continue;
     }
 
-    if (Handle(AIS_InteractiveObject) aShape = anIter.Key1())
+    if (const Handle(AIS_InteractiveObject)& aShape = anIter.Key1())
     {
       aCtx->Erase (aShape, Standard_False);
     }
@@ -3884,7 +3954,7 @@ int VErase (Draw_Interpretor& theDI,
     for (ViewerTest_DoubleMapIteratorOfDoubleMapOfInteractiveAndName anIter (GetMapOfAIS());
          anIter.More(); anIter.Next())
     {
-      const Handle(AIS_InteractiveObject) anIO = anIter.Key1();
+      const Handle(AIS_InteractiveObject)& anIO = anIter.Key1();
       if (!anIO.IsNull()
        && aCtx->IsSelected (anIO))
       {
@@ -3907,7 +3977,7 @@ int VErase (Draw_Interpretor& theDI,
     for (ViewerTest_DoubleMapIteratorOfDoubleMapOfInteractiveAndName anIter (GetMapOfAIS());
          anIter.More(); anIter.Next())
     {
-      Handle(AIS_InteractiveObject) anIO = anIter.Key1();
+      const Handle(AIS_InteractiveObject)& anIO = anIter.Key1();
       if (!anIO.IsNull())
       {
         if (toEraseInView)
@@ -4156,7 +4226,7 @@ int VBounding (Draw_Interpretor& theDI,
     for (ViewerTest_DoubleMapIteratorOfDoubleMapOfInteractiveAndName anIter (GetMapOfAIS());
          anIter.More(); anIter.Next())
     {
-      Handle(AIS_InteractiveObject) anIO = anIter.Key1();
+      const Handle(AIS_InteractiveObject)& anIO = anIter.Key1();
       aHighlightedMode = checkMode (aCtx, anIO, aMode);
       if (aHighlightedMode != -1)
       {
@@ -4798,6 +4868,14 @@ inline Standard_Boolean parseTrsfPersFlag (const TCollection_AsciiString& theFla
   {
     theFlags = Graphic3d_TMF_TriedronPers;
   }
+  else if (theFlagString == "axial")
+  {
+    theFlags = Graphic3d_TMF_AxialScalePers;
+  }
+  else if (theFlagString == "zoomaxial")
+  {
+    theFlags = Graphic3d_TMF_AxialZoomPers;
+  }
   else if (theFlagString == "none")
   {
     theFlags = Graphic3d_TMF_None;
@@ -5098,6 +5176,24 @@ static int VDisplay2 (Draw_Interpretor& theDI,
         if      (aY.RealValue() > 0.0) { aCorner |= Aspect_TOTP_TOP; }
         else if (aY.RealValue() < 0.0) { aCorner |= Aspect_TOTP_BOTTOM; }
         aTrsfPers = new Graphic3d_TransformPers (aTrsfPers->Mode(), Aspect_TypeOfTriedronPosition (aCorner), Graphic3d_Vec2i (aZ.IntegerValue()));
+      }
+    }
+    else if (aNameCase == "-trsfPersOrtho")
+    {
+      if (aTrsfPers.IsNull())
+      {
+        Message::SendFail() << "Error: wrong syntax at " << aName << ".";
+        return 1;
+      }
+
+      toSetTrsfPers = Standard_True;
+      if (aTrsfPers->IsZoomOrRotate())
+      {
+        aTrsfPers = new Graphic3d_TransformPers (aTrsfPers->Mode() | Graphic3d_TMF_OrthoPers, aTrsfPers->AnchorPoint());
+      }
+      else if (aTrsfPers->IsTrihedronOr2d())
+      {
+        aTrsfPers = new Graphic3d_TransformPers (aTrsfPers->Mode() | Graphic3d_TMF_OrthoPers, aTrsfPers->Corner2d(), aTrsfPers->Offset2d());
       }
     }
     else if (aNameCase == "-layer"
@@ -6630,42 +6726,45 @@ If last 3 optional parameters are not set prints numbers of U-, V- isolines and 
 
   addCmd ("vdisplay", VDisplay2, /* [vdisplay] */ R"(
 vdisplay [-noupdate|-update] [-mutable] [-neutral]
-         [-trsfPers {zoom|rotate|zoomRotate|none}=none]
+         [-trsfPers {zoom|rotate|zoomRotate|trihedron|axial|zoomaxial|none}=none]
             [-trsfPersPos X Y [Z]] [-3d]
             [-2d|-trihedron [{top|bottom|left|right|topLeft
                             |topRight|bottomLeft|bottomRight}
               [offsetX offsetY]]]
+            [-trsfPersOrtho]
          [-dispMode mode] [-highMode mode]
          [-layer index] [-top|-topmost|-overlay|-underlay]
          [-redisplay] [-erased]
          [-noecho] [-autoTriangulation {0|1}]
          name1 [name2] ... [name n]
 Displays named objects.
- -noupdate    Suppresses viewer redraw call.
- -mutable     Enables optimizations for mutable objects.
- -neutral     Draws objects in main viewer.
- -erased      Loads the object into context, but does not display it.
- -layer       Sets z-layer for objects.
-              Alternatively -overlay|-underlay|-top|-topmost
-              options can be used for the default z-layers.
- -top         Draws object on top of main presentations
-              but below topmost.
- -topmost     Draws in overlay for 3D presentations.
-              with independent Depth.
- -overlay     Draws objects in overlay for 2D presentations.
-              (On-Screen-Display)
- -underlay    Draws objects in underlay for 2D presentations.
-              (On-Screen-Display)
+ -noupdate      Suppresses viewer redraw call.
+ -mutable       Enables optimizations for mutable objects.
+ -neutral       Draws objects in main viewer.
+ -erased        Loads the object into context, but does not display it.
+ -layer         Sets z-layer for objects.
+                Alternatively -overlay|-underlay|-top|-topmost
+                options can be used for the default z-layers.
+ -top           Draws object on top of main presentations
+                but below topmost.
+ -topmost       Draws in overlay for 3D presentations.
+                with independent Depth.
+ -overlay       Draws objects in overlay for 2D presentations.
+                (On-Screen-Display)
+ -underlay      Draws objects in underlay for 2D presentations.
+                (On-Screen-Display)
  -selectable|-noselect Controls selection of objects.
- -trsfPers    Sets a transform persistence flags.
- -trsfPersPos Sets an anchor point for transform persistence.
- -2d          Displays object in screen coordinates.
-              (DY looks up)
- -dispmode    Sets display mode for objects.
- -highmode    Sets hilight mode for objects.
- -redisplay   Recomputes presentation of objects.
- -noecho      Avoid printing of command results.
- -autoTriang  Enable/disable auto-triangulation for displayed shape.
+ -trsfPers      Sets a transform persistence flags.
+ -trsfPersPos   Sets an anchor point for transform persistence.
+ -2d            Displays object in screen coordinates.
+                (DY looks up)
+ -trsfPersOrtho Set orthographic transform persistence.
+                (Objects shown with orthographic projection)
+ -dispmode      Sets display mode for objects.
+ -highmode      Sets hilight mode for objects.
+ -redisplay     Recomputes presentation of objects.
+ -noecho        Avoid printing of command results.
+ -autoTriang    Enable/disable auto-triangulation for displayed shape.
 )" /* [vdisplay] */);
 
   addCmd ("vnbdisplayed", VNbDisplayed, /* [vnbdisplayed] */ R"(
@@ -6755,6 +6854,9 @@ vdump <filename>.png [-width Width -height Height]
       [-stereo mono|left|right|blend|sideBySide|overUnder=mono]
       [-xrPose base|head|handLeft|handRight=base]
       [-tileSize Size=0]
+      [-grouplayer zlayerId]
+      [-singlelayer zlayerId]
+      [-buffer shadowmap lightname]
 Dumps content of the active view into image file.
 )" /* [vdump] */);
 

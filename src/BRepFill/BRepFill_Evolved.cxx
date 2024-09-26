@@ -711,7 +711,7 @@ void BRepFill_Evolved::ElementaryPerform (const TopoDS_Face&              Sp,
     for (WireExp.Init(TopoDS::Wire(FaceExp.Current())); WireExp.More(); 
       WireExp.Next()) {
 
-        TopoDS_Edge   CurrentEdge = WireExp.Current();
+        const TopoDS_Edge&   CurrentEdge = WireExp.Current();
         TopoDS_Vertex VFirst,VLast;
         EdgeVertices(CurrentEdge,VFirst,VLast);
 
@@ -770,9 +770,7 @@ void BRepFill_Evolved::ElementaryPerform (const TopoDS_Face&              Sp,
     TopTools_DataMapOfShapeSequenceOfShape MapSeqVer;
     BRepFill_DataMapOfShapeSequenceOfPnt   MapSeqPar;
 
-    Standard_Integer vv = 0;
     for(ProfExp.Init(myProfile); ProfExp.More(); ProfExp.Next()) {
-      vv++;
       //-----------------------------------------------
       // Return two faces separated by the bissectrice.
       //-----------------------------------------------
@@ -1955,7 +1953,7 @@ void BRepFill_Evolved::Transfert(      BRepFill_Evolved&             Vevo,
 
       TopTools_ListIteratorOfListOfShape itl;
       for (itl.Initialize(GenShapes); itl.More(); itl.Next()) {
-        itl.Value().Move(LS);
+        itl.ChangeValue().Move(LS);
       }
 
       if (!myMap.IsBound(InitialSpine)) {
@@ -2139,7 +2137,7 @@ void BRepFill_Evolved::MakeSolid()
   B.MakeCompound(Res);
 
   for (; exp.More(); exp.Next()) {
-    TopoDS_Shape Sh = exp.Current();
+    const TopoDS_Shape& Sh = exp.Current();
     B.MakeSolid(Sol);
     B.Add(Sol,Sh);
     BRepClass3d_SolidClassifier SC(Sol);
@@ -3073,7 +3071,7 @@ void CutEdgeProf (const TopoDS_Edge&                  E,
 
   // On calcule les intersection avec Oy.
   Geom2dAdaptor_Curve ALine(Line);
-  Standard_Real Tol = Precision::Intersection();
+  constexpr Standard_Real Tol = Precision::Intersection();
   Standard_Real TolC = 0.;
 
   Geom2dInt_GInter Intersector(ALine,AC2d,TolC,Tol);
@@ -3146,7 +3144,7 @@ void CutEdgeProf (const TopoDS_Edge&                  E,
 
 //=======================================================================
 //function : CutEdge
-//purpose  : Cut an edge at thw extrema of curves and at points of inflexion.
+//purpose  : Cut an edge at the extrema of curves and at points of inflexion.
 //           Closed circles are also cut in two.
 //           If <Cuts> are empty the edge is not modified.
 //           The first and the last vertex of the original edge 

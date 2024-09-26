@@ -87,7 +87,7 @@ static Standard_Boolean CheckSense(const TColGeom_SequenceOfCurve& Seq1,
   Standard_Boolean no_sing = Standard_True;
   Seq2.Clear();
 
-  Handle(Geom_Curve) C1 = Seq1.Value(1);
+  const Handle(Geom_Curve)& C1 = Seq1.Value(1);
   Standard_Real f = C1->FirstParameter(), l = C1->LastParameter();
   Standard_Integer iP, NP = 21;
   TColgp_Array1OfPnt Tab(1,NP);
@@ -125,7 +125,7 @@ static Standard_Boolean CheckSense(const TColGeom_SequenceOfCurve& Seq1,
 
   for (Standard_Integer iseq=2; iseq<=Seq1.Length(); iseq++) {
     // discretisation de C2
-    Handle(Geom_Curve) C2 = Seq1.Value(iseq);
+    const Handle(Geom_Curve)& C2 = Seq1.Value(iseq);
     f = C2->FirstParameter();
     l = C2->LastParameter();
     u = f;
@@ -1091,8 +1091,8 @@ void GeomFill_Pipe::ApproxSurf(const Standard_Boolean WithParameters) {
 
   Handle(GeomFill_Line) Line = new GeomFill_Line(Section.NbSections());
   Standard_Integer NbIt = 0;
-  Standard_Real T3d =  Precision::Approximation();
-  Standard_Real T2d =  Precision::PApproximation();
+  constexpr Standard_Real T3d =  Precision::Approximation();
+  constexpr Standard_Real T2d =  Precision::PApproximation();
   GeomFill_AppSweep App( 4, 8, T3d, T2d, NbIt, WithParameters);
   
   App.Perform( Line, Section, 30);

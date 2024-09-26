@@ -22,6 +22,7 @@
 #include <Standard_Handle.hxx>
 
 #include <GeomToStep_Root.hxx>
+
 class StepGeom_SphericalSurface;
 class Geom_SphericalSurface;
 
@@ -37,7 +38,8 @@ public:
   DEFINE_STANDARD_ALLOC
 
   
-  Standard_EXPORT GeomToStep_MakeSphericalSurface(const Handle(Geom_SphericalSurface)& CSurf);
+  Standard_EXPORT GeomToStep_MakeSphericalSurface(const Handle(Geom_SphericalSurface)& CSurf,
+                                                  const StepData_Factors& theLocalFactors = StepData_Factors());
   
   Standard_EXPORT const Handle(StepGeom_SphericalSurface)& Value() const;
 

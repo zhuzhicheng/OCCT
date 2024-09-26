@@ -238,7 +238,7 @@ static Handle(Geom2d_Curve) Couture(const TopoDS_Edge& E,
     ((*((Handle(BRep_TEdge)*)&E.TShape()))->ChangeCurves());
 
   while (itcr.More()) {
-    Handle(BRep_CurveRepresentation)& cr = itcr.Value();
+    Handle(BRep_CurveRepresentation) cr = itcr.Value();
     if (cr->IsCurveOnSurface(S,l)) {
       Handle(BRep_GCurve) GC (Handle(BRep_GCurve)::DownCast (cr));
       if (GC->IsCurveOnClosedSurface() && Eisreversed) 
@@ -798,7 +798,7 @@ static TopoDS_Edge BuildEdge(Handle(Geom_Curve)& C3d,
   const Handle(IntTools_Context) aNullCtx;
   if (BOPTools_AlgoTools::IsMicroEdge(E, aNullCtx))
   {
-    TopoDS_Vertex aV = VF;
+    const TopoDS_Vertex& aV = VF;
     B.UpdateVertex(aV, P1.Distance(P2));
     B.MakeEdge(E);
     B.UpdateEdge(E, C2d, S, TopLoc_Location(), Tol);
@@ -2890,7 +2890,7 @@ BRepFill_Sweep::BRepFill_Sweep(const Handle(BRepFill_SectionLaw)& Section,
 
 //=======================================================================
 //function : Build
-//purpose  : Construt the result of sweeping
+//purpose  : Construct the result of sweeping
 //======================================================================
 void BRepFill_Sweep::Build(TopTools_MapOfShape& ReversedEdges,
                            BRepFill_DataMapOfShapeHArray2OfShape& Tapes,
@@ -3002,7 +3002,7 @@ void BRepFill_Sweep::Build(TopTools_MapOfShape& ReversedEdges,
         }
       }
 
-    if (aNbFaces == 0)
+    if ((NbTrous > 0) ? (aNbFaces < NbLaw) : (aNbFaces == 0))
     {
       isDone = Standard_False;
       return;

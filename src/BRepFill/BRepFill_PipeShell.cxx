@@ -1116,7 +1116,7 @@ void BRepFill_PipeShell::Generated(const TopoDS_Shape&   theShape,
         for (; Explo.More(); Explo.Next())
         {
           const TopoDS_Edge& anEdge = TopoDS::Edge(Explo.Current());
-          TopTools_ListOfShape aNewEdges = Georges.GeneratedShapes(anEdge);
+          const TopTools_ListOfShape& aNewEdges = Georges.GeneratedShapes(anEdge);
           myEdgeNewEdges.Bind(anEdge, aNewEdges);
         }
       }
@@ -1155,7 +1155,7 @@ void BRepFill_PipeShell::Generated(const TopoDS_Shape&   theShape,
 
 //=======================================================================
 //function : Place
-//purpose  : Implement a Section in the local refernce frame
+//purpose  : Implement a Section in the local reference frame
 //           and return its parameter on the trajectory
 //=======================================================================
 void BRepFill_PipeShell::Place(const BRepFill_Section& Sec,
@@ -1168,7 +1168,7 @@ void BRepFill_PipeShell::Place(const BRepFill_Section& Sec,
 				  Sec.Vertex(),
 				  Sec.WithContact(),
 				  Sec.WithCorrection());
-  TopoDS_Wire TmpWire =  Sec.Wire();
+  const TopoDS_Wire& TmpWire =  Sec.Wire();
   aTrsf = Place.Transformation();
   //Transform the copy
   W = TopoDS::Wire(BRepBuilderAPI_Transform(TmpWire, aTrsf, Standard_True));

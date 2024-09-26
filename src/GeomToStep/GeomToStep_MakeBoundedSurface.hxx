@@ -22,6 +22,7 @@
 #include <Standard_Handle.hxx>
 
 #include <GeomToStep_Root.hxx>
+
 class StepGeom_BoundedSurface;
 class Geom_BoundedSurface;
 
@@ -38,7 +39,8 @@ public:
   DEFINE_STANDARD_ALLOC
 
   
-  Standard_EXPORT GeomToStep_MakeBoundedSurface(const Handle(Geom_BoundedSurface)& C);
+  Standard_EXPORT GeomToStep_MakeBoundedSurface(const Handle(Geom_BoundedSurface)& C,
+                                                const StepData_Factors& theLocalFactors = StepData_Factors());
   
   Standard_EXPORT const Handle(StepGeom_BoundedSurface)& Value() const;
 

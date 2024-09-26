@@ -423,7 +423,7 @@ static void PERFORM_C0(const TopoDS_Edge& S1, const TopoDS_Edge& S2,
 
     if (pCurv->Continuity() == GeomAbs_C0)
     {
-      const Standard_Real epsP = Precision::PConfusion();
+      constexpr Standard_Real epsP = Precision::PConfusion();
 
       GeomAdaptor_Curve aAdaptorCurve(pCurv, aFirst, aLast);
       const Standard_Integer nbIntervals = aAdaptorCurve.NbIntervals(GeomAbs_C1);
@@ -468,7 +468,14 @@ static void PERFORM_C0(const TopoDS_Edge& S1, const TopoDS_Edge& S2,
               if (fabs(Dstmin - sqrt(Ext.SquareDistance(ii))) < Eps)
               {
                 Pt = Ext.Point(ii);
-                if (TRI_SOLUTION(SeqSol2, Pt))
+                // Pt - point on the curve pCurvOther/Eother, but
+                // if iE == 0 -> Eother correspond to edge S2
+                // and to edge S1 in the opposite case.
+                // Therefore we should search Pt through previous solution points on Other curve (edge):
+                // if iE == 0 - on edge S2, namely through SeqSol2,
+                // else       - on edge S1, namely through SeqSol1.
+                const bool triSolutionResult = (iE == 0) ? TRI_SOLUTION(SeqSol2, Pt) : TRI_SOLUTION(SeqSol1, Pt);
+                if (triSolutionResult)
                 {
                   // Check if the parameter does not correspond to a vertex
                   const Standard_Real t = Ext.Parameter(ii);
@@ -709,7 +716,7 @@ void BRepExtrema_DistanceSS::Perform (const TopoDS_Vertex& theS1,
     if ((Dstmin < myDstRef - myEps) || (fabs(Dstmin - myDstRef) < myEps))
     {
       gp_Pnt Pt, P1 = BRep_Tool::Pnt(theS1);
-      const Standard_Real epsP = Precision::PConfusion();
+      constexpr Standard_Real epsP = Precision::PConfusion();
 
       for (i = 1; i <= NbExtrema; i++)
       {
@@ -826,7 +833,7 @@ void BRepExtrema_DistanceSS::Perform (const TopoDS_Edge& theS1,
     if ((Dstmin < myDstRef - myEps) || (fabs(Dstmin - myDstRef) < myEps))
     {
       gp_Pnt Pt1, Pt2;
-      const Standard_Real epsP = Precision::PConfusion();
+      constexpr Standard_Real epsP = Precision::PConfusion();
 
       for (i = 1; i <= NbExtrema; i++)
       {
@@ -869,9 +876,19 @@ void BRepExtrema_DistanceSS::Perform (const TopoDS_Edge& theS1,
 
   if (!seqSol1.IsEmpty() && !seqSol2.IsEmpty())
   {
-    theSeqSolShape1.Append(seqSol1);
-    theSeqSolShape2.Append(seqSol2);
-    myModif = Standard_True;
+    BRepExtrema_SeqOfSolution::iterator anIt1 = seqSol1.begin();
+    BRepExtrema_SeqOfSolution::iterator anIt2 = seqSol2.begin();
+    for (; anIt1 != seqSol1.end() && anIt2 != seqSol2.end(); anIt1++, anIt2++)
+    {
+      gp_Pnt Pt1 = anIt1->Point();
+      gp_Pnt Pt2 = anIt2->Point();
+      if (TRI_SOLUTION(theSeqSolShape1, Pt1) || TRI_SOLUTION(theSeqSolShape2, Pt2))
+      {
+        theSeqSolShape1.Append(*anIt1);
+        theSeqSolShape2.Append(*anIt2);
+        myModif = Standard_True;
+      }
+    }
   }
 }
 
@@ -908,7 +925,7 @@ void BRepExtrema_DistanceSS::Perform (const TopoDS_Edge& theS1, const TopoDS_Fac
       const Standard_Real tol = BRep_Tool::Tolerance(theS2);
 
       gp_Pnt Pt1, Pt2;
-      const Standard_Real epsP = Precision::PConfusion();
+      constexpr Standard_Real epsP = Precision::PConfusion();
 
       for (i = 1; i <= NbExtrema; i++)
       {

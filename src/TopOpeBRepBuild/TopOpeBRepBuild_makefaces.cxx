@@ -137,9 +137,9 @@ void TopOpeBRepBuild_Builder::GWESMakeFaces
 	  Standard_Integer rankVsameG = BDS.AncestorRank(VsameG);
           Standard_Boolean otherRef = (rankVsameG != 0 && rankV != 1);
 
-	  if (otherRef)
+    if (otherRef)
 	    BDS.FillShapesSameDomain(VsameG,V);
-          else
+    else
 	    BDS.FillShapesSameDomain(V,VsameG);
 
 	  hsdm = myDataStructure->HasSameDomain(V);  
@@ -334,7 +334,7 @@ void TopOpeBRepBuild_Builder::GFABUMakeFaces(const TopoDS_Shape& FF,TopOpeBRepBu
   //--ofv:
   //       Unfortunately, the function GFillONPartsWES2() from file TopOpeBRepBuild_BuilderON.cxx sets orientation of
   //       some section edges as INTERNAL or EXTERNAL, but they should be FORWARD or REVERSED. It probably makes faces
-  //       without closed boundary, for example. So, we must check carefuly edges with orientation INTERNAL(EXTERNAL).
+  //       without closed boundary, for example. So, we must check carefully edges with orientation INTERNAL(EXTERNAL).
   //       Bugs: 60936, 60937, 60938 (cut, fuse, common shapes)
   TopoDS_Compound CmpOfEdges;
   BRep_Builder BldCmpOfEdges;
@@ -355,8 +355,6 @@ void TopOpeBRepBuild_Builder::GFABUMakeFaces(const TopoDS_Shape& FF,TopOpeBRepBu
       for (; FABU.MoreWire(); FABU.NextWire())
 	{
 	  Standard_Integer ne = 0;
-	  Standard_Integer neFORWARD  = 0;
-	  Standard_Integer neREVERSED = 0;
 	  Standard_Integer neINTERNAL = 0;
 	  Standard_Integer neEXTERNAL = 0;
 
@@ -387,8 +385,6 @@ void TopOpeBRepBuild_Builder::GFABUMakeFaces(const TopoDS_Shape& FF,TopOpeBRepBu
 		  TopAbs_Orientation oE = newEdge.Orientation();
 		  if      (oE == TopAbs_INTERNAL) neINTERNAL++;
 		  else if (oE == TopAbs_EXTERNAL) neEXTERNAL++;
-		  else if (oE == TopAbs_FORWARD)  neFORWARD++;
-		  else if (oE == TopAbs_REVERSED) neREVERSED++;
 	  
 		  Standard_Boolean hasPC = FC2D_HasCurveOnSurface(newEdge,newFace);                                     // jyl980402+
 		  if (!hasPC)                                                                                           // jyl980402+
@@ -480,8 +476,8 @@ void TopOpeBRepBuild_Builder::GFABUMakeFaces(const TopoDS_Shape& FF,TopOpeBRepBu
 			      if(chkORI == 1)
 				{
 				  TopAbs_Orientation ori = FUN_ReOrientIntExtEdge(E2,O2,E1);
-				  if(ori == TopAbs_FORWARD) { E1.Orientation(TopAbs_FORWARD); neFORWARD++; }
-				  if(ori == TopAbs_REVERSED){ E1.Orientation(TopAbs_REVERSED); neREVERSED++; }
+				  if(ori == TopAbs_FORWARD) { E1.Orientation(TopAbs_FORWARD); }
+				  if(ori == TopAbs_REVERSED){ E1.Orientation(TopAbs_REVERSED); }
 				  if(ori == TopAbs_REVERSED || ori == TopAbs_FORWARD)
 				    {
 				      if(O1 == TopAbs_INTERNAL) neINTERNAL--;
@@ -491,8 +487,8 @@ void TopOpeBRepBuild_Builder::GFABUMakeFaces(const TopoDS_Shape& FF,TopOpeBRepBu
 			      if(chkORI == 2)
 				{
 				  TopAbs_Orientation ori = FUN_ReOrientIntExtEdge(E1,O1,E2);
-				  if(ori == TopAbs_FORWARD) { E2.Orientation(TopAbs_FORWARD); neFORWARD++; }
-				  if(ori == TopAbs_REVERSED){ E2.Orientation(TopAbs_REVERSED); neREVERSED++; }
+				  if(ori == TopAbs_FORWARD) { E2.Orientation(TopAbs_FORWARD); }
+				  if(ori == TopAbs_REVERSED){ E2.Orientation(TopAbs_REVERSED); }
 				  if(ori == TopAbs_REVERSED || ori == TopAbs_FORWARD)
 				    {
 				      if(O2 == TopAbs_INTERNAL) neINTERNAL--;
